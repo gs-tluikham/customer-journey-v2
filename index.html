@@ -12,11 +12,32 @@
 body{font-family:'Noto Sans',sans-serif;background:#EBEEF2;color:var(--rg90);padding:28px;-webkit-font-smoothing:antialiased;}
 /* Deliberately styled unlike the widget so it can't be mistaken for a product control. */
 .rig{max-width:1600px;margin:0 auto 14px;display:flex;align-items:center;gap:14px;
-padding:9px 14px;border:1px dashed #B9A6C9;border-radius:8px;background:#F7F3FA;}
-.riglabel{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7A5E93;}
-.rigfield{display:flex;align-items:center;gap:8px;font-size:12px;color:#5B4A6B;}
-.rigsel{height:28px;border:1px solid #C9B8D6;border-radius:6px;background:#fff;color:var(--rg90);
-font-family:inherit;font-size:13px;padding:0 8px;cursor:pointer;}
+padding:9px 14px;border:1px dashed #B9A6C9;border-radius:8px;background:#F7F3FA;min-width:0;}
+.riglabel{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7A5E93;
+flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rigfield{display:flex;align-items:center;gap:8px;font-size:12px;color:#5B4A6B;
+flex:0 0 auto;min-width:0;white-space:nowrap;}
+/* A select sizes to its longest option and never shrinks on its own. min-width:0 on both the
+   field and the select lets the row give width back; the floor keeps a few words visible. */
+.rigfield.fit{flex:0 1 auto;}
+.rigsel{height:28px;border:1px solid #C9B8D6;border-radius:6px;color:var(--rg90);
+font-family:inherit;font-size:13px;padding:0 28px 0 8px;cursor:pointer;
+flex:1 1 auto;min-width:120px;max-width:100%;width:auto;
+overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+appearance:none;-webkit-appearance:none;background-color:#fff;
+background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%235B4A6B' stroke-width='1.5'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+background-repeat:no-repeat;background-position:right 8px center;background-size:14px;}
+.rigsel:hover{border-color:#A88BBE;}
+.rigsel:focus-visible{outline:2px solid #7A5E93;outline-offset:1px;}
+@media (max-width:820px){
+  .rig{flex-wrap:wrap;row-gap:8px;}
+  .riglabel{flex:1 0 100%;}
+  .rigfield{margin-left:0 !important;}
+  .rigfield.fit{flex:1 1 0;}
+}
+@media (max-width:560px){
+  .rigfield,.rigfield.fit{flex:1 0 100%;}
+}
 .wrap{max-width:1600px;margin:0 auto;background:#fff;border:1px solid var(--rg30);border-radius:16px;padding:20px 24px 16px;box-shadow:0 2px 4px rgba(52,56,58,.06);position:relative;}
 .top{display:flex;align-items:center;gap:4px;margin-bottom:6px;position:relative;}
 h1{font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--rg70);}
@@ -436,17 +457,17 @@ border-radius:40px;padding:5px 11px 5px 9px;cursor:pointer;box-shadow:0 2px 6px 
 </head>
 <body>
 <div class="rig">
-  <span class="riglabel">Prototype rig — v3: events on top, milestones below, key-date strip</span>
+  <span class="riglabel" title="Prototype rig — v3: events on top, milestones below, key-date strip">Prototype rig — v3: events on top, milestones below, key-date strip</span>
   <label class="rigfield" style="margin-left:auto;">
     <input type="checkbox" id="dbgRegions"> Layout regions
   </label>
-  <label class="rigfield" style="margin-left:14px;">Layout
+  <label class="rigfield fit" style="margin-left:14px;">Layout
     <select id="layoutSel" class="rigsel" title="Compare lane layouts">
       <option value="split">Two lanes — events above, milestones below</option>
       <option value="merged">One lane — events and milestones together</option>
     </select>
   </label>
-  <label class="rigfield" style="margin-left:14px;">Scenario
+  <label class="rigfield fit" style="margin-left:14px;">Scenario
     <select id="scenSel" class="rigsel" title="Stress-test scenario"></select>
   </label>
 </div>
@@ -3377,15 +3398,23 @@ cfgMask.addEventListener('click',e=>{if(e.target===cfgMask) cfgClose();});
 // select is the only change needed to bring it back.
 const sentSel=document.getElementById('sentSel');
 if(sentSel) sentSel.onchange=e=>{sentFilter=e.target.value;closePop();build();};
+// A truncated select still has to say what it holds: the hover title carries the full choice.
+function syncSelTitle(sel,purpose){
+  const o=sel.options[sel.selectedIndex];
+  sel.title=o? purpose+': '+o.textContent : purpose;
+}
 const layoutSel=document.getElementById('layoutSel');
 layoutSel.value=LAYOUT;
-layoutSel.onchange=e=>{ LAYOUT=e.target.value; closePop(); build(); };
+syncSelTitle(layoutSel,'Layout');
+layoutSel.onchange=e=>{ syncSelTitle(layoutSel,'Layout'); LAYOUT=e.target.value; closePop(); build(); };
 const scenSel=document.getElementById('scenSel');
 Object.keys(SCENARIOS).forEach(k=>{
  const o=document.createElement('option'); o.value=k; o.textContent=SCENARIOS[k].label; scenSel.appendChild(o);
 });
 scenSel.value=SCENARIO;
+syncSelTitle(scenSel,'Scenario');
 scenSel.onchange=e=>{
+  syncSelTitle(scenSel,'Scenario');
   SCENARIO=e.target.value;
   const sc=SCENARIOS[SCENARIO];
   notConfigured=!!sc.notConfigured;
