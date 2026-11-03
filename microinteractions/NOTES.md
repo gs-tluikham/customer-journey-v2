@@ -153,7 +153,9 @@ enough in practice.
 Not gated by an `MI` flag — this is the existing `#horizonPill`, restyled and moved.
 
 - **Look.** White pill, one line (`12 earlier milestones`), and a teal three-diamond mark
-  (`#horizonPill` styles, `HORIZON_MARK`). The old second phrase ("events start Mar 2026")
+  (`#horizonPill` styles, `HORIZON_MARK`). The mark is three *overlapping* outline diamonds
+  (pale `#AED6D6`, mid `#81BFBF`, front `#4BA3A4`), each shifted right over the one behind
+  it — not three separate outlines in a row. The old second phrase ("events start Mar 2026")
   is gone from the chip; that explanation stays on the tooltip.
 - **Place.** Centred in the milestone lane, inset from the left plot edge so it sits beside
   the vertical "Milestones" label rather than in the events lane. Merged layout (one shared

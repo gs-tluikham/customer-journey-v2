@@ -3519,11 +3519,14 @@ document.addEventListener('keydown',e=>{
    left plot edge so the vertical "Milestones" label in the margin stays readable.
    Merged layout has no separate milestone band, so it uses the single shared lane.
    Hidden when the milestone lane itself is toggled off — there is nowhere to put it. */
-const HORIZON_MARK='<svg viewBox="0 0 34 16" aria-hidden="true">'+
-  '<g fill="none" stroke="#4BA3A4" stroke-width="1.6" stroke-linejoin="round">'+
-  '<polygon points="3,8 7,2.2 11,8 7,13.8"/>'+
-  '<polygon points="13,8 17,2.2 21,8 17,13.8"/>'+
-  '<polygon points="23,8 27,2.2 31,8 27,13.8"/>'+
+/* Three overlapping outline diamonds, back to front: pale, mid, then #4BA3A4.
+   Same mark as the reference chip — hollow centres, each one shifted right and
+   painted over the one behind it, not three separate diamonds in a row. */
+const HORIZON_MARK='<svg viewBox="1 4 64 40" aria-hidden="true">'+
+  '<g fill="none" stroke-linejoin="miter">'+
+  '<polygon points="21,9 36,24 21,39 6,24" stroke="#AED6D6" stroke-width="6.2"/>'+
+  '<polygon points="33,9 48,24 33,39 18,24" stroke="#81BFBF" stroke-width="6.2"/>'+
+  '<polygon points="45,9 60,24 45,39 30,24" stroke="#4BA3A4" stroke-width="6.2"/>'+
   '</g></svg>';
 function horizonHostLane(){
   if(LAYOUT==='merged') return (laneOn.milestone||laneOn.lifecycle)?'lifecycle':null;
