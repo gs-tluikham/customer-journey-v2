@@ -1515,6 +1515,10 @@ function soloMid(){ return laneSolo().y; }
 /* Where the paging chevrons and renewal pill sit: the gap between events and milestones, or
    the middle of the lane when only one is showing. */
 function navY(){ return soloLane()? soloMid() : dividerY(); }
+/* Side labels name the two lanes. They only earn their margin when both lanes are on;
+   a single lane, or the merged layout, already has one obvious band. */
+function laneLabelsOn(){ return LAYOUT!=='merged' && !soloLane(); }
+const PLOT_GUTTER=24, LANE_LABEL_MARGIN=44;
 function lanesOn(){
   if(LAYOUT==='merged') return {milestone:false, lifecycle:(laneOn.milestone||laneOn.lifecycle)};
   return {milestone:laneOn.milestone, lifecycle:laneOn.lifecycle};
@@ -2234,7 +2238,7 @@ function build(){
  hoverLabel=null;   // label elements die with the old chart's renderer
  BUCKETS={};
  chart=Highcharts.chart('chart',{
-  chart:{style:{fontFamily:'Noto Sans, sans-serif'},marginLeft:24,marginRight:24,marginTop:14,marginBottom:marginBottom(),
+  chart:{style:{fontFamily:'Noto Sans, sans-serif'},marginLeft:laneLabelsOn()?LANE_LABEL_MARGIN:PLOT_GUTTER,marginRight:24,marginTop:14,marginBottom:marginBottom(),
     zooming:{type:'x',resetButton:{theme:{style:{display:'none'}}}},
     events:{render:function(){
       const c=this,yA=c.yAxis[0],xA=c.xAxis[0];
@@ -2493,6 +2497,23 @@ function build(){
           .css({color:'#ACB4BD',fontSize:'12px',fontStyle:'italic',pointerEvents:'none'}).add();
         c.emptyEls.push(t);
       });
+
+      // Lane names, reading upward, centred on each band. The rotation origin is the
+      // start of the string, and -90 sends the word upward, so the origin sits half a
+      // word below the band's middle. Outside the plot, and only while the lanes are split.
+      (c.laneLbl||[]).forEach(e=>e.destroy()); c.laneLbl=[];
+      if(laneLabelsOn()){
+        const css={color:'#5F6C7A', fontSize:'12px', fontWeight:'500',
+          fontFamily:'Noto Sans, sans-serif', pointerEvents:'none'};
+        [['Events','lifecycle'],['Milestones','milestone']].forEach(([name,lane])=>{
+          const b=laneGeom(lane).band;
+          const mid=(yA.toPixels(b.to)+yA.toPixels(b.from))/2;
+          const probe=c.renderer.text(name,0,-200).css(css).add();
+          const w=probe.getBBox().width; probe.destroy();
+          c.laneLbl.push(c.renderer.text(name, 18, mid+w/2)
+            .attr({rotation:-90, zIndex:5}).css(css).add());
+        });
+      }
 
       positionNav(c);
       markPopupOwners(c);
