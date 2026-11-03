@@ -1515,9 +1515,17 @@ function soloMid(){ return laneSolo().y; }
 /* Where the paging chevrons and renewal pill sit: the gap between events and milestones, or
    the middle of the lane when only one is showing. */
 function navY(){ return soloLane()? soloMid() : dividerY(); }
-/* Side labels name the two lanes. They sit in the gutter the chart already had, so the
-   plot width does not change. A single lane, or the merged layout, needs no names. */
-function laneLabelsOn(){ return LAYOUT!=='merged' && !soloLane(); }
+/* Side labels name whichever of the two lanes is showing. They are drawn in the gutter
+   the chart already had — margins stay 24 — so the plot box does not move or resize.
+   The merged layout is one shared band, so it has no lane name. */
+function laneLabelEntries(){
+  if(LAYOUT==='merged') return [];
+  const a=lanesOn();
+  const out=[];
+  if(a.lifecycle) out.push(['Events','lifecycle']);
+  if(a.milestone) out.push(['Milestones','milestone']);
+  return out;
+}
 function lanesOn(){
   if(LAYOUT==='merged') return {milestone:false, lifecycle:(laneOn.milestone||laneOn.lifecycle)};
   return {milestone:laneOn.milestone, lifecycle:laneOn.lifecycle};
@@ -2497,18 +2505,29 @@ function build(){
         c.emptyEls.push(t);
       });
 
-      // Lane names, reading upward, centred on each band. The rotation origin is the
-      // start of the string, and -90 sends the word upward, so the origin sits half a
-      // word below the band's middle. Outside the plot, and only while the lanes are split.
+      // Lane names, reading upward, centred on each visible band. The rotation origin is
+      // the start of the string, and -90 sends the word upward, so the origin sits half a
+      // word below the band's middle. x stays inside the existing left margin.
       (c.laneLbl||[]).forEach(e=>e.destroy()); c.laneLbl=[];
-      if(laneLabelsOn()){
+      {
         const css={color:'#5F6C7A', fontSize:'12px', fontWeight:'500',
           fontFamily:'Noto Sans, sans-serif', pointerEvents:'none'};
-        [['Events','lifecycle'],['Milestones','milestone']].forEach(([name,lane])=>{
+        laneLabelEntries().forEach(([name,lane])=>{
           const b=laneGeom(lane).band;
-          const mid=(yA.toPixels(b.to)+yA.toPixels(b.from))/2;
+          const top=yA.toPixels(b.to), bot=yA.toPixels(b.from);
+          let mid=(top+bot)/2;
           const probe=c.renderer.text(name,0,-200).css(css).add();
           const w=probe.getBBox().width; probe.destroy();
+          /* Solo mode puts the paging control on the lane centre, which is also where a
+             centred name would land. Keep the name in the free part of the band, above
+             that control, so the two don't cover each other. */
+          if(soloLane()===lane){
+            const navPx=yA.toPixels(navY());
+            const ceil=top+4, floor=navPx-18;
+            const room=floor-ceil;
+            if(room>=w) mid=(ceil+floor)/2;
+            else mid=ceil+w/2;   // word is taller than the gap: pin its top to the band
+          }
           c.laneLbl.push(c.renderer.text(name, 15, mid+w/2)
             .attr({rotation:-90, zIndex:5}).css(css).add());
         });
