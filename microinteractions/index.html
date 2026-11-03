@@ -234,9 +234,13 @@ box-shadow:0 4px 12px rgba(52,56,58,.16);padding:6px 10px;font-size:12px;color:v
    effect at once. See NOTES.md next to this file for what each class does and where it's
    wired. Individual effects can also be switched off one at a time via the MI config
    object in the script, without touching this CSS. */
-#chart{transition:opacity .15s ease, transform .22s cubic-bezier(.22,.9,.32,1);}
-#chart.mi-lane-out{opacity:0; transform:translateY(6px);}
-#chart.mi-lane-in{opacity:0; transform:translateY(-6px);}
+/* v2 — see miTransitionBuild(). A clone of the chart's last rendered frame sits on top as a
+   static, click-through overlay while the real chart rebuilds underneath (instant, but hidden
+   under the clone); the clone then fades away to reveal the finished new chart. There is never
+   a blank frame, which is what the old fade-out/fade-in-#chart-itself version read as a cut. */
+.mi-lane-snap{position:absolute;pointer-events:none;z-index:50;
+  opacity:1;transition:opacity .34s ease, transform .34s ease;}
+.mi-lane-snap.mi-fade-out{opacity:0; transform:scale(1.015);}
 
 .mlist.mi-spring{animation:miSpring .28s cubic-bezier(.34,1.56,.64,1);}
 @keyframes miSpring{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
@@ -247,21 +251,20 @@ box-shadow:0 4px 12px rgba(52,56,58,.16);padding:6px 10px;font-size:12px;color:v
 .edmask.mi-fade{opacity:0;transition:opacity .18s ease;}
 .edmask.mi-fade.show{opacity:1;}
 
+/* v2 — the renewal is marked IN the key-date lane rather than by a separate toolbar chip
+   (the chip read as redundant with the flag that was already there). Three layered pieces,
+   all drawn in the render hook at the renewal flag's own position:
+   - .mi-goal-halo: a soft "ping" — a live/important-location cue (map "you are here" dot,
+     notification ping), NOT the progress indicator.
+   - the progress ring itself is plain SVG (no CSS needed — an Apple-Watch/GitHub-streak style
+     arc that fills clockwise as the current contract term elapses), drawn alongside the halo.
+   - .mi-goal-star: a small twinkling sparkle badge — "this one's the goal", the way a starred
+     calendar event or a game quest-marker reads at a glance. */
 .mi-goal-halo{transform-box:fill-box;transform-origin:center;pointer-events:none;
-  animation:miGoalPulse 1.8s ease-in-out infinite;}
-@keyframes miGoalPulse{0%{transform:scale(.8);opacity:.5;}70%{transform:scale(1.7);opacity:0;}100%{transform:scale(1.7);opacity:0;}}
-
-.mi-goal-chip{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px 0 9px;
-  border:1px solid #E3D3EE;border-radius:40px;background:#FBF8FD;cursor:pointer;
-  font-family:inherit;font-size:12px;color:#5B4A6B;}
-.mi-goal-chip:hover{background:#F3E9F8;border-color:#D3BBE6;}
-.mi-goal-chip:focus-visible{outline:2px solid var(--royal-blue);outline-offset:1px;}
-.mi-goal-flag{width:11px;height:11px;flex:none;color:#552A8C;display:flex;}
-.mi-goal-flag svg{width:100%;height:100%;display:block;}
-.mi-goal-txt{font-weight:600;white-space:nowrap;}
-.mi-goal-track{width:42px;height:4px;border-radius:2px;background:#E6D9EF;overflow:hidden;flex:none;}
-.mi-goal-fill{display:block;height:100%;width:0;background:#552A8C;border-radius:2px;
-  transition:width .4s ease;}
+  animation:miGoalPulse 2.2s ease-in-out infinite;}
+@keyframes miGoalPulse{0%{transform:scale(.75);opacity:.45;}70%{transform:scale(1.9);opacity:0;}100%{transform:scale(1.9);opacity:0;}}
+.mi-goal-star{animation:miGoalTwinkle 2.4s ease-in-out infinite;}
+@keyframes miGoalTwinkle{0%,100%{opacity:.5;}50%{opacity:1;}}
 /* ===================================================================================== */
 
 
@@ -587,15 +590,10 @@ border-radius:40px;padding:5px 11px 5px 9px;cursor:pointer;box-shadow:0 2px 6px 
            so the filter's effect cannot be read off the chart — only from the tooltip and
            popover text. -->
       <!-- <select id="sentSel" class="sel" title="Filter events by sentiment"><option value="all">All sentiment</option><option value="risk">Negative</option><option value="watch">Neutral</option><option value="pos">Positive</option></select> -->
-      <!-- MI: renewalGoal — the renewal is treated as the journey's goal. First pass: a HUD
-           chip with a countdown and a term-progress bar, plus a pulsing halo on the renewal
-           flag itself (see render hook) and a slightly larger flag radius (see markerFor).
-           Remove this button, its halo/markerFor code, and the .mi-goal-* CSS to revert. -->
-      <button class="mi-goal-chip" id="btnGoal" type="button" title="Jump to the renewal">
-        <span class="mi-goal-flag"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M4 13.5V0.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 0.5L13.8 5L4 9.5Z" fill="currentColor"/></svg></span>
-        <span class="mi-goal-txt" id="goalTxt">Renewal</span>
-        <span class="mi-goal-track"><span class="mi-goal-fill" id="goalFill"></span></span>
-      </button>
+      <!-- MI: renewalGoal — v1 put the renewal's countdown/progress in a toolbar chip here.
+           Removed as redundant with the flag that already marks it in the key-date lane; the
+           same info now lives on the flag itself (progress ring, star badge) and in its own
+           tooltip/popover. See the render hook and markerFor() for what replaced this. -->
       <button class="iconbtn2" id="btnCfg" title="Configure" aria-label="Configure Customer Journey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       <!-- One action, no menu. CSV and XLS were dropped: the widget's value is the shape of
            the timeline, and a spreadsheet of the same rows is Timeline's job, not this one.
@@ -728,9 +726,19 @@ const MI = {
   drawerFade:     MI_ENABLED && true,  // drawer backdrop fades in
   flagWave:       MI_ENABLED && true,  // key-date flags ripple on hover and on first view
   todayPulse:     MI_ENABLED && true,  // TODAY line pulses once when a chart is first built
-  renewalGoal:    MI_ENABLED && true   // renewal flag + HUD treated as the journey's goal
+  renewalGoal:    MI_ENABLED && true   // renewal flag (in-lane): progress ring, star, spring-pop
 };
-/* MI: hoverSpotlight — grow the hovered marker, dim its own lane's other markers. */
+/* MI: renewalGoal — a reusable "pop" easing for the goal flag's extra-springy hover bounce
+   (classic ease-out-elastic). Registered once, globally, like Highcharts' own named easings.
+   Highcharts.easing isn't guaranteed to exist as an object before anything is assigned to it
+   in this build, hence the defensive `||{}` rather than assuming it's pre-populated. */
+Highcharts.easing = Highcharts.easing || {};
+Highcharts.easing.miSpring=function(pos){
+  return 1 + (-Math.pow(2,-10*pos)) * Math.cos((pos*10-0.75)*((2*Math.PI)/3));
+};
+/* MI: hoverSpotlight — grow the hovered marker, dim its own lane's other markers. The goal
+   flag (MI: renewalGoal) gets a springier, bigger pop instead of the ordinary grow, so it reads
+   as a more playful "that's the goal" moment rather than the same treatment as everything else. */
 function miSpotlight(point){
   const series=point&&point.series;
   if(!series||!isLaneSeries(series)) return;
@@ -743,7 +751,12 @@ function miSpotlight(point){
   });
   try{
     const baseR=(point.options.marker&&point.options.marker.radius)||5;
-    point.graphic.animate({r:baseR+2.5},{duration:140});
+    const mm=MOMENTS[(point.options||{}).mi];
+    if(MI.renewalGoal && mm && mm.renewal){
+      point.graphic.animate({r:baseR+3.5},{duration:420,easing:'miSpring'});
+    } else {
+      point.graphic.animate({r:baseR+2.5},{duration:140});
+    }
     point._miGrownR=baseR;
   }catch(e){}
 }
@@ -761,28 +774,61 @@ function miClearSpotlight(point){
     }
   });
 }
-/* MI: laneTransition — cross-fade + slight slide around a lane-changing build(). Not a true
-   per-marker morph between layouts (the chart is destroyed and rebuilt either way, per the
-   existing build() design) — this disguises that jump as a transition instead. */
+/* MI: laneTransition (v2) — a genuine two-layer cross-fade, not fade-to-blank-then-fade-in.
+   v1 faded #chart itself out, rebuilt it while invisible, then faded it back in — the blank
+   gap in between is exactly what read as a cut rather than a cross-fade. This version clones
+   the chart's current rendered frame into a static, click-through overlay, rebuilds the real
+   chart underneath it (instant, but hidden under the clone), then fades the clone away to
+   reveal the already-finished new chart. New content is on screen the whole time: old simply
+   dissolves into it. Not a true per-marker morph between layouts (build() still destroys and
+   recreates the chart underneath) — but there is no blank frame, which is what was missing. */
 function miTransitionBuild(){
   if(!MI.laneTransition){ build(); return; }
   const el=document.getElementById('chart');
-  el.classList.add('mi-lane-out');
-  setTimeout(()=>{
-    build();
-    el.classList.remove('mi-lane-out');
-    el.classList.add('mi-lane-in');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('mi-lane-in')));
-  },130);
+  const parent=el.parentElement;
+  let snap=null;
+  try{
+    if(parent && getComputedStyle(parent).position==='static') parent.style.position='relative';
+    snap=el.cloneNode(true);
+    /* The clone carries a second copy of every id in the live chart — Highcharts' own
+       clip-path/gradient ids included. Two elements sharing one id is invalid, and some
+       browsers resolve url(#id) references against the wrong copy. The snapshot is purely
+       decorative and lives for ~350ms, so stripping ids outright (rather than rewriting every
+       url(#...) reference to a renamed id) is the simpler, low-risk trade. */
+    snap.removeAttribute('id');
+    snap.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+    snap.className='mi-lane-snap';
+    // Positioned as a SIBLING of #chart, not a child: build() clears #chart's own innerHTML
+    // to rebuild it, which would destroy the snapshot on the spot if it lived inside #chart.
+    snap.style.left=el.offsetLeft+'px';
+    snap.style.top=el.offsetTop+'px';
+    snap.style.width=el.offsetWidth+'px';
+    snap.style.height=el.offsetHeight+'px';
+    parent.insertBefore(snap, el.nextSibling);
+  }catch(e){ snap=null; }
+  build();
+  if(snap){
+    // Forced reflow (same trick as popoverRise's `void pop.offsetWidth`), not a double-RAF:
+    // the snapshot's opacity:1 must actually be committed to the render tree before adding
+    // mi-fade-out, or the browser can coalesce both states and skip straight to the end,
+    // which is a jump rather than a fade.
+    void snap.offsetWidth;
+    snap.classList.add('mi-fade-out');
+    setTimeout(()=>{ try{ snap.remove(); }catch(e){} },380);
+  }
 }
-/* MI: flagWave — a short ripple at a key-date marker's position. */
+/* MI: flagWave — a short ripple at a key-date marker's position. pointerEvents:'none' matters
+   here: without it the ring sits over the marker and steals the mouseover/mouseout pair from
+   the point underneath as it grows, which is what made the native tooltip "blink" — Highcharts
+   saw the pointer leave the point (onto the ring) and re-enter a frame later. */
 function miFlagWave(point){
   if(!chart||!point||!point.graphic) return;
   try{
     const cx=chart.plotLeft+point.plotX, cy=chart.plotTop+point.plotY;
     const col=(point.options.marker&&point.options.marker.fillColor)||KEYDATE_PURPLE;
     const ring=chart.renderer.circle(cx,cy,3)
-      .attr({fill:'none',stroke:col,'stroke-width':2,opacity:.55,zIndex:9}).add();
+      .attr({fill:'none',stroke:col,'stroke-width':2,opacity:.55,zIndex:9})
+      .css({pointerEvents:'none'}).add();
     ring.animate({r:16,opacity:0},{duration:560},()=>{try{ring.destroy();}catch(e){}});
   }catch(e){}
 }
@@ -799,18 +845,19 @@ function renewalInfo(){
   const elapsed=Math.min(span,Math.max(0,TODAY-start));
   return {rn, start, pct:Math.round((elapsed/span)*100), days:Math.round((rn.x-TODAY)/864e5)};
 }
-function updateGoalChip(){
-  const btn=document.getElementById('btnGoal');
-  if(!btn) return;
-  if(!MI.renewalGoal){ btn.style.display='none'; return; }
-  const info=renewalInfo();
-  if(!info){ btn.style.display='none'; return; }
-  btn.style.display='inline-flex';
-  const txt=document.getElementById('goalTxt'), fill=document.getElementById('goalFill');
-  txt.textContent = info.days>=0 ? `Renewal in ${info.days}d` : `Renewal ${Math.abs(info.days)}d ago`;
-  fill.style.width = Math.max(4,Math.min(100,info.pct))+'%';
-  btn.title = `${displayName(info.rn)} \u2022 ${Highcharts.dateFormat('%e %b %Y',info.rn.x)} \u2022 `+
-    `${info.pct}% of the current term elapsed \u2022 click to jump to it`;
+/* MI: renewalGoal — path data for an SVG progress-ring ARC (Apple-Watch/GitHub-streak style):
+   a stroke-only circle segment starting at 12 o'clock, sweeping clockwise to `pct`%. Returns
+   null at 0% (a zero-length arc degenerates to nothing worth drawing). */
+function miArcPath(cx,cy,r,pct){
+  const frac=Math.max(0,Math.min(1,pct/100));
+  if(frac<=0.002) return null;
+  const start=-Math.PI/2;
+  const end=start + Math.min(frac,0.9995)*Math.PI*2;   // just short of 360° — a true full
+                                                        // circle via one 'A' command collapses
+  const sx=cx+r*Math.cos(start), sy=cy+r*Math.sin(start);
+  const ex=cx+r*Math.cos(end), ey=cy+r*Math.sin(end);
+  const largeArc=(end-start)>Math.PI ? 1 : 0;
+  return ['M',sx,sy,'A',r,r,0,largeArc,1,ex,ey];
 }
 /* ===================================================================================== */
 const SPARK='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 0C6.6 3.6 8.4 5.4 12 6C8.4 6.6 6.6 8.4 6 12C5.4 8.4 3.6 6.6 0 6C3.6 5.4 5.4 3.6 6 0Z" fill="currentColor"/></svg>';
@@ -2645,7 +2692,8 @@ function build(){
           c.miTodayPulsed=true;
           try{
             const ring=c.renderer.circle(tx,top+9,3)
-              .attr({fill:'none',stroke:'#5B9BF3','stroke-width':2,opacity:.6,zIndex:2}).add();
+              .attr({fill:'none',stroke:'#5B9BF3','stroke-width':2,opacity:.6,zIndex:2})
+              .css({pointerEvents:'none'}).add();
             ring.animate({r:22,opacity:0},{duration:900},()=>{try{ring.destroy();}catch(e){}});
           }catch(e){}
         }
@@ -2701,28 +2749,56 @@ function build(){
         });
       }
 
-      /* MI: renewalGoal — a pulsing halo (CSS animation, see .mi-goal-halo) behind the renewal
-         flag, so it reads as the journey's goal rather than just another key date. Redrawn each
-         render like c.laneLbl above, since the flag's pixel position moves with the window/page.
-         updateGoalChip() lives here too: it is idempotent and this is the one place guaranteed
-         to run after every build() and every redraw, without needing build()'s own closing code. */
+      /* MI: renewalGoal (v2) — the renewal stays exactly where it already was (a flag in the
+         key-date lane, no separate toolbar chip) but reads as the journey's goal through three
+         layered pieces, all positioned off the actual rendered point (see the bucket-contents
+         search just below):
+           1. .mi-goal-halo — a soft "ping" (map "you are here" dot, notification badge): a
+              live/important-location cue, not a progress indicator.
+           2. a plain SVG progress ring — Apple-Watch/GitHub-streak style arc, filling clockwise
+              as the current contract term elapses (same % renewalInfo() always computed).
+           3. .mi-goal-star — a small twinkling sparkle badge: "this one's the goal", read the
+              way a starred calendar event or a game quest-marker reads at a glance.
+         All redrawn every render, like c.laneLbl above, since the flag's pixel position moves
+         with the window/page. */
       (c.miGoalHalo||[]).forEach(e=>{try{e.destroy();}catch(_){}}); c.miGoalHalo=[];
       if(MI.renewalGoal){
         try{
-          /* Positioned from the moment's own x-value and the key-date lane's fixed row,
-             not by searching chart points for one carrying the renewal — the renewal flag
-             may be grouped into a "+N" cluster that wears a DIFFERENT item's marker (see
-             laneData's dom-of-cluster rule), so no point would ever match a point search. */
           const info=renewalInfo();
-          if(info && laneOn.keydate && info.rn.x>=winMin && info.rn.x<=winMax){
-            const cx=c.plotLeft+xA.toPixels(info.rn.x,true);
-            const cy=yA.toPixels(laneGeom('keydate').y);
-            c.miGoalHalo.push(c.renderer.circle(cx,cy,7)
-              .attr({fill:KEYDATE_RENEWAL,opacity:.5,zIndex:6}).addClass('mi-goal-halo').add());
+          /* Positioned off the ACTUAL rendered point, found by checking each key-date point's
+             BUCKET CONTENTS for the renewal moment — not by reading the point's own `mi` field,
+             which only names the cluster's dominant item when the renewal is grouped into a
+             "+N" (laneData's dom-of-cluster rule). A bucket-contents search finds the right
+             visual marker either way, including its real tier row (crowded periods stack
+             key dates onto different rows), which a lane-average y position would miss. */
+          const kds=c.series.find(x=>x.name==='Key dates');
+          const rnPt=info && (kds&&kds.points||[]).find(pt=>
+            (BUCKETS[(pt.options||{}).bkey]||[]).some(mm=>mm.renewal));
+          if(rnPt && rnPt.graphic && rnPt.plotX!=null && rnPt.plotY!=null &&
+             rnPt.plotX>=0 && rnPt.plotX<=c.plotWidth){
+            const cx=c.plotLeft+rnPt.plotX, cy=c.plotTop+rnPt.plotY;
+            const ringR=13;
+            // 1. ping
+            c.miGoalHalo.push(c.renderer.circle(cx,cy,6)
+              .attr({fill:KEYDATE_RENEWAL,opacity:.45,zIndex:4})
+              .addClass('mi-goal-halo').css({pointerEvents:'none'}).add());
+            // 2. progress ring: a faint full track, then the elapsed-term arc on top
+            c.miGoalHalo.push(c.renderer.circle(cx,cy,ringR)
+              .attr({fill:'none',stroke:'#E6D9EF','stroke-width':2.5,zIndex:5})
+              .css({pointerEvents:'none'}).add());
+            const arc=miArcPath(cx,cy,ringR,info.pct);
+            if(arc) c.miGoalHalo.push(c.renderer.path(arc)
+              .attr({fill:'none',stroke:KEYDATE_RENEWAL,'stroke-width':2.5,
+                'stroke-linecap':'round',zIndex:6})
+              .css({pointerEvents:'none'}).add());
+            // 3. star badge, offset toward the flag's upper-right flutter corner
+            c.miGoalHalo.push(c.renderer.path(
+                'M6 0C6.6 3.6 8.4 5.4 12 6C8.4 6.6 6.6 8.4 6 12C5.4 8.4 3.6 6.6 0 6C3.6 5.4 5.4 3.6 6 0Z')
+              .attr({fill:'#F2A93B',zIndex:7,transform:`translate(${cx+8},${cy-13}) scale(.65)`})
+              .addClass('mi-goal-star').css({pointerEvents:'none'}).add());
           }
         }catch(e){}
       }
-      updateGoalChip();
 
       positionNav(c);
       markPopupOwners(c);
@@ -2830,8 +2906,18 @@ function build(){
       const m=MOMENTS[o.mi];
       if(!m) return false;
       if(kdGroup(p)) return false;   // a key-date group shows its list instead
+      let meta=metaLine(m,' \u2022 ');
+      // MI: renewalGoal — the native tooltip carries the gamified countdown/progress that used
+      // to live in the removed toolbar chip, right where you're already looking on hover.
+      if(MI.renewalGoal && m.renewal){
+        const info=renewalInfo();
+        if(info){
+          const left=info.days>=0 ? `${info.days}d to go` : `${Math.abs(info.days)}d ago`;
+          meta += ` \u2022 ${left} \u2022 ${info.pct}% of term elapsed`;
+        }
+      }
       return `<div class="cjtip"><div class="t">${displayName(m)}</div>`+
-             `<div class="m">${metaLine(m,' \u2022 ')}</div>`+`</div>`;
+             `<div class="m">${meta}</div>`+`</div>`;
     }},
   plotOptions:{scatter:{cluster:{enabled:false},stickyTracking:false,
       point:{events:{
@@ -3182,7 +3268,12 @@ function openDetail(m,pt){
  } else if(m.kind==='keydate'){
   h=`<div class="ptop"><h3 style="font-size:16px">${displayName(m)}</h3><div class="x" onclick="closePop()">×</div></div>
    <div class="pmeta">Key date · ${dateStr}</div>
-   <div class="fld" style="margin-top:12px"><div class="v" style="color:var(--rg60);font-size:12px;margin:0">Key dates carry a name and date only.</div></div>`;
+   <div class="fld" style="margin-top:12px"><div class="v" style="color:var(--rg60);font-size:12px;margin:0">Key dates carry a name and date only.</div></div>`+
+   // MI: renewalGoal — the chip's "jump to it" convenience now lives here instead of in a
+   // separate always-on control.
+   (MI.renewalGoal && m.renewal
+     ? `<div class="divide" style="margin-top:14px"></div><button class="slink" id="popGoalJump" type="button">Jump to this month →</button>`
+     : '');
 
  } else {
   // Events are inferred by Staircase. The reasoning is the content; the record lives elsewhere.
@@ -3209,6 +3300,15 @@ function openDetail(m,pt){
  if(MI.popoverRise){ void pop.offsetWidth; pop.classList.add('mi-rise'); }
  const more=document.getElementById('popMore');
  if(more) more.onclick=ev=>{ev.preventDefault();closePop();openEventDetail(m);};
+ // MI: renewalGoal
+ const goalJump=document.getElementById('popGoalJump');
+ if(goalJump) goalJump.onclick=ev=>{
+   ev.preventDefault();
+   const info=renewalInfo();
+   if(!info) return;
+   const [a,b]=monthSpan(info.rn.x);
+   closePop(); flashRegion(a,b); setWindow(a,b,true);
+ };
  if(pt) placePopAt(pt.plotX,pt.plotY);
  else { // opened from the renewal pill or the hover list: anchor to whichever is showing
   const wrap=document.getElementById('wrap').getBoundingClientRect();
@@ -3812,17 +3912,8 @@ document.querySelectorAll('.tchip').forEach(b=>{
 /* ---- download ---- */
 const btnPng=document.getElementById('btnPng');
 btnPng.onclick=()=>chart.exportChart({type:'image/png'});
-
-/* MI: renewalGoal — clicking the HUD chip jumps/zooms the chart to the renewal's month, the
-   same jump mechanism the month axis and key-date clicks already use. */
-document.getElementById('btnGoal').onclick=()=>{
-  const info=renewalInfo();
-  if(!info) return;
-  const [a,b]=monthSpan(info.rn.x);
-  closePop();
-  flashRegion(a,b);
-  setWindow(a,b,true);
-};
+// MI: renewalGoal — the chip's "jump to it" click moved into the renewal's own popover
+// (see openDetail's keydate branch, button #popGoalJump) now that the chip itself is gone.
 
 const keyPop=document.getElementById('keyPop'),btnInfo=document.getElementById('btnInfo');
 let keyPopTimer=null;
