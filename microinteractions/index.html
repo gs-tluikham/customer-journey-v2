@@ -1717,7 +1717,7 @@ let FS_LANES=null;
      key-date strip  KD_LANE px, one row, sits directly on the health bars
      KD_GAP          clear space so the lowest milestone label never touches a flag label
      milestones      automatic or manual milestones
-     LANE_GAP        no divider line any more; still the home of the chevrons and renewal pill
+     LANE_GAP        no divider line any more; still the home of the paging chevrons
      events          detected events and CSM-entered events, the dense lane, on top
    Key dates get their own strip because they are calendar anchors the reader wants to find
    first — QBR, onboarding complete, renewal — and in a shared lane they competed with
@@ -3346,8 +3346,7 @@ function positionNav(c){
  const midTop=(box.top-wrap.top)+c.yAxis[0].toPixels(navY())-15;
  /* FIX 3, part 2: counts use passesFilters(), not visible(), so a future renewal stays in
     the forward count once you page away and the pill stops representing it. While the pill
-    IS showing, it's excluded — otherwise the chevron lands underneath the pill, two controls
-    for the same item in the same place. */
+    IS showing, the renewal is excluded from that count — the chip already stands for it. */
  const pillShown=renewPillShown();
  /* At the horizon the chevron would page into empty lane, so it hands over to the horizon
     pill — one affordance for "older than this", not two pointing the same way. */
@@ -3482,23 +3481,50 @@ function positionRenewPill(c){
  const days=Math.round((rn.x-TODAY)/864e5);
  const months=Math.round(days/30.44);
  // relative distance answers the scanning question; exact date lives in the popover
- // MI: renewalGoal — a small home-base icon and a purple-tinted treatment (mi-goal-pill),
- // so the one-pill-in-the-corner that points at an off-screen renewal reads as the same
- // "journey's goal" idea as the in-lane flag, rather than a plain neutral info pill.
+ // MI: renewalGoal — a small home-base icon and a purple-tinted treatment (mi-goal-pill).
  rp.classList.toggle('mi-goal-pill', !!MI.renewalGoal);
  rp.innerHTML = (MI.renewalGoal ? `<span class="rgp-icon">${MI_HOME_ICON}</span>` : '')+
    `<span class="rl">Renewal</span><span class="rd">in ${months} mo</span>`;
  rp.title=`Renewal date ${Highcharts.dateFormat('%e %b %Y',rn.x)}`;
  rp.style.display='inline-flex';
+ rp.style.right='auto';
  const box=c.container.getBoundingClientRect(),wrap=document.getElementById('wrap').getBoundingClientRect();
- rp.style.left='auto';
- // slight overhang past the plot edge, echoing the paging chevrons, to read as "beyond here"
- rp.style.right=(wrap.width-((box.left-wrap.left)+c.plotLeft+c.plotWidth)-10)+'px';
- /* Both can legitimately show at once — a renewal beyond the window AND other items out
-    there too. They're anchored to the same corner, so the pill lifts clear of the chevron
-    rather than landing on it. */
- const fbShown=document.getElementById('fwdBtn').style.display==='inline-flex';
- rp.style.top=((box.top-wrap.top)+c.yAxis[0].toPixels(navY())-11-(fbShown?30:0))+'px';
+ const pw=rp.offsetWidth||128, ph=rp.offsetHeight||22;
+ const originTop=box.top-wrap.top, originLeft=box.left-wrap.left;
+ /* Centred on the key-date strip. The chip is taller than the 16px strip, so if centring
+    would drop it onto the health bars, pin its foot to the strip and let the extra height
+    sit in the gap above the lane. */
+ const mid=originTop+c.yAxis[0].toPixels(laneGeom('keydate').y);
+ let top=mid-ph/2;
+ const stripBot=originTop+c.yAxis[0].toPixels(0);
+ if(top+ph>stripBot) top=stripBot-ph;
+ const gap=8;
+ const minLeft=originLeft+c.plotLeft+8;
+ let left=originLeft+c.plotLeft+c.plotWidth-pw-8;
+ /* A key date already in the strip — its flag or its label — claims that stretch of the
+    lane. Slide the chip left until it clears every one of them. */
+ const obstacles=[];
+ const kds=c.series.find(s=>s.name==='Key dates');
+ (kds&&kds.points||[]).forEach(pt=>{
+   [pt.graphic].concat(pt.dataLabels||[]).forEach(el=>{
+     const node=el&&el.element;
+     if(!node||!node.getBoundingClientRect) return;
+     const r=node.getBoundingClientRect();
+     if(r.width<1||r.height<1) return;
+     obstacles.push({l:r.left-wrap.left, t:r.top-wrap.top, r:r.right-wrap.left, b:r.bottom-wrap.top});
+   });
+ });
+ const hits=L=>obstacles.some(o=>L+pw+gap>o.l && L-gap<o.r && top+ph+gap>o.t && top-gap<o.b);
+ for(let n=0;n<8 && hits(left);n++){
+   const blocking=obstacles.filter(o=>left+pw+gap>o.l && left-gap<o.r && top+ph+gap>o.t && top-gap<o.b);
+   const edge=Math.min.apply(null, blocking.map(o=>o.l));
+   const next=edge-gap-pw;
+   if(!(next<left)) break;
+   left=next;
+ }
+ if(left<minLeft) left=minLeft;
+ rp.style.left=left+'px';
+ rp.style.top=top+'px';
  rp.onclick=()=>openDetail(rn,null);
 }
 /* Paging shifts by the visible span, not a fixed 3 months. While zoomed into a week,

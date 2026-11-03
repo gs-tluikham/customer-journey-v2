@@ -151,6 +151,10 @@ date. Those three overlays and the enlarged flag radius are gone. When the day i
 window the renewal is the same pennant as every other key date. The edge pill (home icon)
 and the popover card are unchanged.
 
+The pill itself now sits in the key-date lane, at the right edge of the strip, instead of
+up in the events area. `positionRenewPill()` centres it on that strip and, if a key date's
+flag or label already occupies that stretch, slides the chip left until it clears them.
+
 ## Earlier-milestones chip
 
 Not gated by an `MI` flag — this is the existing `#horizonPill`, restyled and moved.
