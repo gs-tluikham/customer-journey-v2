@@ -88,9 +88,6 @@ renewal's own flag, in the key-date lane, where it already was:
 - **Native tooltip enrichment** (new): hovering the flag now shows "…planned • 129d to go •
   72% of term elapsed" right in the existing tooltip — recovering the chip's informational
   value without a second always-on control.
-- **"Jump to this month" in its own popover** (new): clicking the renewal flag opens the normal
-  key-date popover, now with a "Jump to this month →" link — recovering the chip's click
-  action, contextually, only where the renewal itself is.
 
 **Positioning note**: all three drawn pieces (ping, ring, star) are positioned off the
 *actual rendered point* — found by checking each key-date point's bucket contents for the
@@ -99,12 +96,57 @@ dominant item when the renewal is grouped into a "+N"). A bucket-contents search
 right visual marker either way, at its real tier row, even when the lane is crowded enough
 to stack key dates onto more than one row.
 
-This is still a first pass for review — ideas for a possible next round, not yet built:
-a small celebratory animation once the term is e.g. >90% elapsed, restyling the existing
-edge-of-window "Renewal in N mo" pill (`renewPillShown()` / `positionRenewPill()`, left
-untouched throughout) to match this visual language, and/or a literal checkered "finish
-line" treatment on the flag's pennant itself (closer to a real-world race/finish-line flag)
-if the star+ring combination doesn't feel distinct enough in practice.
+### Renewal-date gamification (v3 — second round of feedback)
+
+Four more changes, all still under the `renewalGoal` flag:
+
+1. **"Jump to this month →" removed entirely.** v2 added this link to the renewal's popover
+   (recovering the old chip's click action). Feedback: paging to a single month can hide other
+   events/milestones near the renewal that aren't shown once you've jumped there — a single
+   calendar anchor shouldn't double as a navigation shortcut with that side effect. The link,
+   and its `popGoalJump` click handler, are gone. The popover is now purely informational for
+   the renewal, same as it already is for every other key date.
+
+2. **The edge-of-window "Renewal in N mo" pill is now part of the same visual language**,
+   instead of being left as a plain neutral pill (noted as a "next round" idea in v2, now
+   built). `positionRenewPill()` adds a `mi-goal-pill` class and a small home-base icon
+   (`MI_HOME_ICON`, a new shared SVG constant) in front of the existing "Renewal · in N mo"
+   text. Styling (`.renewpill.mi-goal-pill` + children) is a light purple tint with a small
+   hover scale-bounce — explicitly scoped to `#renewPill` only; `#horizonPill` (the unrelated
+   "earlier milestones" pill that happens to share the base `.renewpill` class) is never
+   touched. This was the "should this be a fun item, like the castle in Mario or home base"
+   ask — landed as a literal home icon rather than a literal castle, since a tiny corner pill
+   has room for an icon, not an illustration; the home-base *idea* (a single, friendly,
+   unmistakable "base" marker) carries over.
+
+3. **The popover's generic "Key dates carry a name and date only" line is replaced for the
+   renewal specifically** with a warmer card (`miGoalCard()`, new `.goalcard` CSS): a home icon,
+   one short message that changes with how close the date is (`miGoalLine()` — "still a way
+   off… building toward" / "coming into view" / "home stretch" / "passed N days ago"), the
+   days-to-go count, the %-of-term-elapsed figure, and a small purple progress bar echoing the
+   flag's own ring. Every *other* key date still gets the original plain line — this is a
+   renewal-only upgrade, not a change to key dates in general. Both the in-lane flag's popover
+   and the edge pill's popover show it, since both call `openDetail()` on the same renewal
+   moment.
+
+4. **Other key dates landing in the renewal's month are *not* duplicated into the pill/card.**
+   Checked the existing data model before deciding: key dates that land close together already
+   get merged into the same `BUCKETS` entry and rendered as a single "+N" marker with its own
+   mini-list popover (`showMiniList()` / `BUCKETS[bkey]`) — that's the mechanism that already
+   surfaces "there's more than one thing here," on the canvas, at the place it actually
+   happened. Repeating that inside the renewal's own pill/card would (a) duplicate information
+   the chart already shows, and (b) turn one single-purpose "go look at the renewal" target
+   into two ambiguous click targets in a small space. Left as-is; flagging back in case the
+   reasoning should be revisited once there's a real multi-key-date-same-month account to look
+   at.
+
+(Item 5 of this round's feedback was left blank — nothing to action; flagged back to confirm
+nothing was meant to go there.)
+
+This is still a first pass for review — remaining idea not yet built: a small celebratory
+animation once the term is e.g. >90% elapsed, and/or a literal checkered "finish line"
+treatment on the flag's pennant itself if the star+ring combination doesn't feel distinct
+enough in practice.
 
 ## Known limitation
 

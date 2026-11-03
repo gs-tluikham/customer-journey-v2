@@ -67,6 +67,16 @@ border-radius:40px;padding:3px 10px;box-shadow:0 1px 3px rgba(52,56,58,.10);font
 .renewpill:hover{background:var(--rg20);border-color:var(--rg40);}
 .renewpill .rl{font-weight:600;color:var(--rg70);}
 .renewpill .rd{color:var(--rg60);}
+/* MI: renewalGoal — only ever applied to #renewPill (never #horizonPill, which shares the
+   base .renewpill look but is an unrelated "earlier milestones" affordance). A small home-base
+   icon plus a purple tint, so this pill reads as the same "journey's goal" idea as the in-lane
+   flag and its popover card, rather than a plain neutral info pill. */
+.renewpill.mi-goal-pill{background:#FBF8FD;border-color:#D9C3EA;
+  transition:transform .15s ease, background .12s, border-color .12s;}
+.renewpill.mi-goal-pill:hover{background:#F3E9F8;border-color:#C7A8DE;transform:scale(1.05);}
+.renewpill.mi-goal-pill .rl{color:#552A8C;}
+.renewpill.mi-goal-pill .rgp-icon{width:12px;height:12px;flex:none;color:#552A8C;display:flex;}
+.renewpill.mi-goal-pill .rgp-icon svg{width:100%;height:100%;display:block;stroke:currentColor;stroke-width:1.8;}
 /* ---- hover tooltip ----
    Title is REGULAR weight — the size and the near-black colour already separate it from the
    grey meta line, so bold on top of both over-weights a two-line card. Both sizes are one
@@ -445,6 +455,22 @@ box-shadow:0 8px 24px rgba(52,56,58,.18),0 2px 6px rgba(52,56,58,.10);padding:15
 .pop .cmt input{width:100%;height:36px;border:1px solid var(--rg40);border-radius:8px;padding:0 12px;font-size:13px;font-family:inherit;color:var(--rg90);}
 .pop .cmt input::placeholder{color:var(--rg50);}
 .pop .cmt input:focus{outline:none;border-color:var(--royal-blue);}
+/* MI: renewalGoal — the warm/visual replacement for the generic "Key dates carry a name and
+   date only" line, shown only in the renewal's own popover. Same purple tokens as the
+   restyled pill and the in-lane ring/star, so the pill, the flag and this card read as one
+   idea rather than three unrelated treatments. */
+.goalcard{display:flex;gap:11px;margin-top:12px;padding:12px 13px;background:#FBF8FD;
+  border:1px solid #ECDFF4;border-radius:12px;}
+.goalcard-icon{width:30px;height:30px;flex:none;border-radius:50%;background:#F3E9F8;
+  color:#552A8C;display:flex;align-items:center;justify-content:center;}
+.goalcard-icon svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.8;fill:none;}
+.goalcard-body{flex:1;min-width:0;}
+.goalcard-msg{font-size:13px;color:var(--rg90);line-height:1.45;}
+.goalcard-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;font-size:11.5px;}
+.goalcard-days{font-weight:600;color:#552A8C;}
+.goalcard-pct{color:var(--rg60);}
+.goalcard-bar{height:5px;border-radius:3px;background:#E9DCF2;margin-top:6px;overflow:hidden;}
+.goalcard-fill{height:100%;border-radius:3px;background:#7A4FB0;transition:width .3s ease;}
 .row{display:flex;gap:10px;align-items:flex-start;padding:9px 6px;border-radius:8px;cursor:pointer;}
 .row:hover{background:var(--rg20);}
 .row .dot{width:12px;height:12px;flex:none;margin-top:3px;display:flex;align-items:center;justify-content:center;}
@@ -858,6 +884,35 @@ function miArcPath(cx,cy,r,pct){
   const ex=cx+r*Math.cos(end), ey=cy+r*Math.sin(end);
   const largeArc=(end-start)>Math.PI ? 1 : 0;
   return ['M',sx,sy,'A',r,r,0,largeArc,1,ex,ey];
+}
+/* MI: renewalGoal — a simple home-base icon, shared by the edge pill and the popover card so
+   the two read as the same idea ("this is where the journey is headed") wherever you meet it. */
+const MI_HOME_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 10v9h13v-9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 19v-5.5h4V19" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* MI: renewalGoal — a short, friendly line keyed to how close the renewal is, instead of a
+   flat date-only statement. Kept to one sentence so it reads as a nudge, not a report. */
+function miGoalLine(info){
+  if(info.days>90) return 'Still a way off, but this is the one everything in the journey is building toward.';
+  if(info.days>30) return 'Coming into view — worth starting to line things up for this one.';
+  if(info.days>=0) return "Almost here — this is the home stretch.";
+  return `This one passed ${Math.abs(info.days)} days ago.`;
+}
+/* MI: renewalGoal — replaces the generic "key dates carry a name and date only" line in the
+   renewal's own popover with a warmer message plus the same term-progress read as the flag's
+   ring, in card form. Shared between the in-lane flag's popover and the edge pill's popover —
+   both call openDetail() on the same renewal moment, so one function covers both. */
+function miGoalCard(){
+  const info=renewalInfo();
+  if(!info) return '';
+  const pct=Math.max(4,Math.min(100,info.pct));
+  const daysTxt=info.days>=0 ? `${info.days} days to go` : `${Math.abs(info.days)} days ago`;
+  return `<div class="goalcard">
+    <div class="goalcard-icon">${MI_HOME_ICON}</div>
+    <div class="goalcard-body">
+      <div class="goalcard-msg">${miGoalLine(info)}</div>
+      <div class="goalcard-row"><span class="goalcard-days">${daysTxt}</span><span class="goalcard-pct">${info.pct}% of term elapsed</span></div>
+      <div class="goalcard-bar"><div class="goalcard-fill" style="width:${pct}%"></div></div>
+    </div>
+  </div>`;
 }
 /* ===================================================================================== */
 const SPARK='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 0C6.6 3.6 8.4 5.4 12 6C8.4 6.6 6.6 8.4 6 12C5.4 8.4 3.6 6.6 0 6C3.6 5.4 5.4 3.6 6 0Z" fill="currentColor"/></svg>';
@@ -3267,13 +3322,14 @@ function openDetail(m,pt){
 
  } else if(m.kind==='keydate'){
   h=`<div class="ptop"><h3 style="font-size:16px">${displayName(m)}</h3><div class="x" onclick="closePop()">×</div></div>
-   <div class="pmeta">Key date · ${dateStr}</div>
-   <div class="fld" style="margin-top:12px"><div class="v" style="color:var(--rg60);font-size:12px;margin:0">Key dates carry a name and date only.</div></div>`+
-   // MI: renewalGoal — the chip's "jump to it" convenience now lives here instead of in a
-   // separate always-on control.
-   (MI.renewalGoal && m.renewal
-     ? `<div class="divide" style="margin-top:14px"></div><button class="slink" id="popGoalJump" type="button">Jump to this month →</button>`
-     : '');
+   <div class="pmeta">Key date · ${dateStr}</div>`+
+   // MI: renewalGoal — a warmer, visual message for the renewal specifically, in place of
+   // the plain "key dates carry a name and date only" line every OTHER key date still gets
+   // below. No "jump to this month" action here any more (removed per feedback: this is a
+   // single calendar anchor, not a navigation shortcut — paging there can skip over nearby
+   // events/milestones the popover has no way to warn about).
+   (MI.renewalGoal && m.renewal ? miGoalCard() :
+     `<div class="fld" style="margin-top:12px"><div class="v" style="color:var(--rg60);font-size:12px;margin:0">Key dates carry a name and date only.</div></div>`);
 
  } else {
   // Events are inferred by Staircase. The reasoning is the content; the record lives elsewhere.
@@ -3300,15 +3356,6 @@ function openDetail(m,pt){
  if(MI.popoverRise){ void pop.offsetWidth; pop.classList.add('mi-rise'); }
  const more=document.getElementById('popMore');
  if(more) more.onclick=ev=>{ev.preventDefault();closePop();openEventDetail(m);};
- // MI: renewalGoal
- const goalJump=document.getElementById('popGoalJump');
- if(goalJump) goalJump.onclick=ev=>{
-   ev.preventDefault();
-   const info=renewalInfo();
-   if(!info) return;
-   const [a,b]=monthSpan(info.rn.x);
-   closePop(); flashRegion(a,b); setWindow(a,b,true);
- };
  if(pt) placePopAt(pt.plotX,pt.plotY);
  else { // opened from the renewal pill or the hover list: anchor to whichever is showing
   const wrap=document.getElementById('wrap').getBoundingClientRect();
@@ -3488,7 +3535,12 @@ function positionRenewPill(c){
  const days=Math.round((rn.x-TODAY)/864e5);
  const months=Math.round(days/30.44);
  // relative distance answers the scanning question; exact date lives in the popover
- rp.innerHTML=`<span class="rl">Renewal</span><span class="rd">in ${months} mo</span>`;
+ // MI: renewalGoal — a small home-base icon and a purple-tinted treatment (mi-goal-pill),
+ // so the one-pill-in-the-corner that points at an off-screen renewal reads as the same
+ // "journey's goal" idea as the in-lane flag, rather than a plain neutral info pill.
+ rp.classList.toggle('mi-goal-pill', !!MI.renewalGoal);
+ rp.innerHTML = (MI.renewalGoal ? `<span class="rgp-icon">${MI_HOME_ICON}</span>` : '')+
+   `<span class="rl">Renewal</span><span class="rd">in ${months} mo</span>`;
  rp.title=`Renewal date ${Highcharts.dateFormat('%e %b %Y',rn.x)}`;
  rp.style.display='inline-flex';
  const box=c.container.getBoundingClientRect(),wrap=document.getElementById('wrap').getBoundingClientRect();
@@ -3912,8 +3964,6 @@ document.querySelectorAll('.tchip').forEach(b=>{
 /* ---- download ---- */
 const btnPng=document.getElementById('btnPng');
 btnPng.onclick=()=>chart.exportChart({type:'image/png'});
-// MI: renewalGoal — the chip's "jump to it" click moved into the renewal's own popover
-// (see openDetail's keydate branch, button #popGoalJump) now that the chip itself is gone.
 
 const keyPop=document.getElementById('keyPop'),btnInfo=document.getElementById('btnInfo');
 let keyPopTimer=null;
