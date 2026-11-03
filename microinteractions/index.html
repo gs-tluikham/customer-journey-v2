@@ -269,20 +269,10 @@ box-shadow:0 4px 12px rgba(52,56,58,.16);padding:6px 10px;font-size:12px;color:v
 .edmask.mi-fade{opacity:0;transition:opacity .18s ease;}
 .edmask.mi-fade.show{opacity:1;}
 
-/* v2 — the renewal is marked IN the key-date lane rather than by a separate toolbar chip
-   (the chip read as redundant with the flag that was already there). Three layered pieces,
-   all drawn in the render hook at the renewal flag's own position:
-   - .mi-goal-halo: a soft "ping" — a live/important-location cue (map "you are here" dot,
-     notification ping), NOT the progress indicator.
-   - the progress ring itself is plain SVG (no CSS needed — an Apple-Watch/GitHub-streak style
-     arc that fills clockwise as the current contract term elapses), drawn alongside the halo.
-   - .mi-goal-star: a small twinkling sparkle badge — "this one's the goal", the way a starred
-     calendar event or a game quest-marker reads at a glance. */
-.mi-goal-halo{transform-box:fill-box;transform-origin:center;pointer-events:none;
-  animation:miGoalPulse 2.2s ease-in-out infinite;}
-@keyframes miGoalPulse{0%{transform:scale(.75);opacity:.45;}70%{transform:scale(1.9);opacity:0;}100%{transform:scale(1.9);opacity:0;}}
-.mi-goal-star{animation:miGoalTwinkle 2.4s ease-in-out infinite;}
-@keyframes miGoalTwinkle{0%,100%{opacity:.5;}50%{opacity:1;}}
+/* The in-lane renewal ring, ping, and star were removed. Paging the renewal into view
+   drew a circle around the pennant, so the key date read as a lollipop instead of a flag.
+   The renewal is an ordinary key-date flag when its day is on screen. The edge pill and
+   the popover card still carry the goal treatment. */
 /* ===================================================================================== */
 
 
@@ -878,20 +868,6 @@ function renewalInfo(){
   const span=Math.max(1,rn.x-start);
   const elapsed=Math.min(span,Math.max(0,TODAY-start));
   return {rn, start, pct:Math.round((elapsed/span)*100), days:Math.round((rn.x-TODAY)/864e5)};
-}
-/* MI: renewalGoal — path data for an SVG progress-ring ARC (Apple-Watch/GitHub-streak style):
-   a stroke-only circle segment starting at 12 o'clock, sweeping clockwise to `pct`%. Returns
-   null at 0% (a zero-length arc degenerates to nothing worth drawing). */
-function miArcPath(cx,cy,r,pct){
-  const frac=Math.max(0,Math.min(1,pct/100));
-  if(frac<=0.002) return null;
-  const start=-Math.PI/2;
-  const end=start + Math.min(frac,0.9995)*Math.PI*2;   // just short of 360° — a true full
-                                                        // circle via one 'A' command collapses
-  const sx=cx+r*Math.cos(start), sy=cy+r*Math.sin(start);
-  const ex=cx+r*Math.cos(end), ey=cy+r*Math.sin(end);
-  const largeArc=(end-start)>Math.PI ? 1 : 0;
-  return ['M',sx,sy,'A',r,r,0,largeArc,1,ex,ey];
 }
 /* MI: renewalGoal — a simple home-base icon, shared by the edge pill and the popover card so
    the two read as the same idea ("this is where the journey is headed") wherever you meet it. */
@@ -1659,9 +1635,7 @@ function markerFor(m){
    const stroke=m.status?SENT[m.status].c:(MTYPE_COLOR[m.detail.tVal]||MCLUSTER_GREY);
    return {symbol:'diamond',radius:7,fillColor:'#fff',lineColor:stroke,lineWidth:2.25};}
  if(m.kind==='keydate'){ const c=m.renewal?KEYDATE_RENEWAL:KEYDATE_PURPLE;
-   // MI: renewalGoal — the goal flag reads slightly larger than an ordinary key date.
-   const r=(MI.renewalGoal&&m.renewal)?7.5:6;
-   return {symbol:'flag',radius:r,fillColor:c,lineColor:c,lineWidth:0}; }
+   return {symbol:'flag',radius:6,fillColor:c,lineColor:c,lineWidth:0}; }
  return {symbol:'circle',radius:5,fillColor:eventColor(m),lineColor:'#fff',lineWidth:1};
 }
 const LANE_WINDOW={};   // window in days the ladder settled on, per lane
@@ -2810,57 +2784,6 @@ function build(){
           c.laneLbl.push(c.renderer.text(name, 15, mid+w/2)
             .attr({rotation:-90, zIndex:5}).css(css).add());
         });
-      }
-
-      /* MI: renewalGoal (v2) — the renewal stays exactly where it already was (a flag in the
-         key-date lane, no separate toolbar chip) but reads as the journey's goal through three
-         layered pieces, all positioned off the actual rendered point (see the bucket-contents
-         search just below):
-           1. .mi-goal-halo — a soft "ping" (map "you are here" dot, notification badge): a
-              live/important-location cue, not a progress indicator.
-           2. a plain SVG progress ring — Apple-Watch/GitHub-streak style arc, filling clockwise
-              as the current contract term elapses (same % renewalInfo() always computed).
-           3. .mi-goal-star — a small twinkling sparkle badge: "this one's the goal", read the
-              way a starred calendar event or a game quest-marker reads at a glance.
-         All redrawn every render, like c.laneLbl above, since the flag's pixel position moves
-         with the window/page. */
-      (c.miGoalHalo||[]).forEach(e=>{try{e.destroy();}catch(_){}}); c.miGoalHalo=[];
-      if(MI.renewalGoal){
-        try{
-          const info=renewalInfo();
-          /* Positioned off the ACTUAL rendered point, found by checking each key-date point's
-             BUCKET CONTENTS for the renewal moment — not by reading the point's own `mi` field,
-             which only names the cluster's dominant item when the renewal is grouped into a
-             "+N" (laneData's dom-of-cluster rule). A bucket-contents search finds the right
-             visual marker either way, including its real tier row (crowded periods stack
-             key dates onto different rows), which a lane-average y position would miss. */
-          const kds=c.series.find(x=>x.name==='Key dates');
-          const rnPt=info && (kds&&kds.points||[]).find(pt=>
-            (BUCKETS[(pt.options||{}).bkey]||[]).some(mm=>mm.renewal));
-          if(rnPt && rnPt.graphic && rnPt.plotX!=null && rnPt.plotY!=null &&
-             rnPt.plotX>=0 && rnPt.plotX<=c.plotWidth){
-            const cx=c.plotLeft+rnPt.plotX, cy=c.plotTop+rnPt.plotY;
-            const ringR=13;
-            // 1. ping
-            c.miGoalHalo.push(c.renderer.circle(cx,cy,6)
-              .attr({fill:KEYDATE_RENEWAL,opacity:.45,zIndex:4})
-              .addClass('mi-goal-halo').css({pointerEvents:'none'}).add());
-            // 2. progress ring: a faint full track, then the elapsed-term arc on top
-            c.miGoalHalo.push(c.renderer.circle(cx,cy,ringR)
-              .attr({fill:'none',stroke:'#E6D9EF','stroke-width':2.5,zIndex:5})
-              .css({pointerEvents:'none'}).add());
-            const arc=miArcPath(cx,cy,ringR,info.pct);
-            if(arc) c.miGoalHalo.push(c.renderer.path(arc)
-              .attr({fill:'none',stroke:KEYDATE_RENEWAL,'stroke-width':2.5,
-                'stroke-linecap':'round',zIndex:6})
-              .css({pointerEvents:'none'}).add());
-            // 3. star badge, offset toward the flag's upper-right flutter corner
-            c.miGoalHalo.push(c.renderer.path(
-                'M6 0C6.6 3.6 8.4 5.4 12 6C8.4 6.6 6.6 8.4 6 12C5.4 8.4 3.6 6.6 0 6C3.6 5.4 5.4 3.6 6 0Z')
-              .attr({fill:'#F2A93B',zIndex:7,transform:`translate(${cx+8},${cy-13}) scale(.65)`})
-              .addClass('mi-goal-star').css({pointerEvents:'none'}).add());
-          }
-        }catch(e){}
       }
 
       positionNav(c);

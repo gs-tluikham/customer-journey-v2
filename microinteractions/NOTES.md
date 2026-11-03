@@ -143,10 +143,13 @@ Four more changes, all still under the `renewalGoal` flag:
 (Item 5 of this round's feedback was left blank — nothing to action; flagged back to confirm
 nothing was meant to go there.)
 
-This is still a first pass for review — remaining idea not yet built: a small celebratory
-animation once the term is e.g. >90% elapsed, and/or a literal checkered "finish line"
-treatment on the flag's pennant itself if the star+ring combination doesn't feel distinct
-enough in practice.
+### In-lane ring removed
+
+Paging forward brings the renewal date on screen, and the progress ring, ping, and star
+were drawn around that flag. The pennant inside the circle read as a lollipop, not a key
+date. Those three overlays and the enlarged flag radius are gone. When the day is in the
+window the renewal is the same pennant as every other key date. The edge pill (home icon)
+and the popover card are unchanged.
 
 ## Earlier-milestones chip
 
