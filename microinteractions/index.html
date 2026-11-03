@@ -228,6 +228,42 @@ box-shadow:0 4px 12px rgba(52,56,58,.16);padding:6px 10px;font-size:12px;color:v
 /* .ovwrap/.ovmenu/.ovitem removed with the exports menu — one download button now. */
 .ovsep{height:1px;background:var(--rg30);margin:5px 4px;}
 
+/* =====================================================================================
+   MICROINTERACTIONS LAB — added styles. Everything in this block is new; delete the whole
+   block (and its JS counterpart tagged "MI:" near the top of the script) to remove every
+   effect at once. See NOTES.md next to this file for what each class does and where it's
+   wired. Individual effects can also be switched off one at a time via the MI config
+   object in the script, without touching this CSS. */
+#chart{transition:opacity .15s ease, transform .22s cubic-bezier(.22,.9,.32,1);}
+#chart.mi-lane-out{opacity:0; transform:translateY(6px);}
+#chart.mi-lane-in{opacity:0; transform:translateY(-6px);}
+
+.mlist.mi-spring{animation:miSpring .28s cubic-bezier(.34,1.56,.64,1);}
+@keyframes miSpring{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
+
+.pop.mi-rise{animation:miFadeRise .18s ease-out;}
+@keyframes miFadeRise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.edmask.mi-fade{opacity:0;transition:opacity .18s ease;}
+.edmask.mi-fade.show{opacity:1;}
+
+.mi-goal-halo{transform-box:fill-box;transform-origin:center;pointer-events:none;
+  animation:miGoalPulse 1.8s ease-in-out infinite;}
+@keyframes miGoalPulse{0%{transform:scale(.8);opacity:.5;}70%{transform:scale(1.7);opacity:0;}100%{transform:scale(1.7);opacity:0;}}
+
+.mi-goal-chip{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 10px 0 9px;
+  border:1px solid #E3D3EE;border-radius:40px;background:#FBF8FD;cursor:pointer;
+  font-family:inherit;font-size:12px;color:#5B4A6B;}
+.mi-goal-chip:hover{background:#F3E9F8;border-color:#D3BBE6;}
+.mi-goal-chip:focus-visible{outline:2px solid var(--royal-blue);outline-offset:1px;}
+.mi-goal-flag{width:11px;height:11px;flex:none;color:#552A8C;display:flex;}
+.mi-goal-flag svg{width:100%;height:100%;display:block;}
+.mi-goal-txt{font-weight:600;white-space:nowrap;}
+.mi-goal-track{width:42px;height:4px;border-radius:2px;background:#E6D9EF;overflow:hidden;flex:none;}
+.mi-goal-fill{display:block;height:100%;width:0;background:#552A8C;border-radius:2px;
+  transition:width .4s ease;}
+/* ===================================================================================== */
+
 
 /* ---- event detail drawer (third pane) ---- */
 .edmask{position:fixed;inset:0;background:rgba(24,31,38,.45);z-index:210;display:none;justify-content:flex-end;}
@@ -551,6 +587,15 @@ border-radius:40px;padding:5px 11px 5px 9px;cursor:pointer;box-shadow:0 2px 6px 
            so the filter's effect cannot be read off the chart — only from the tooltip and
            popover text. -->
       <!-- <select id="sentSel" class="sel" title="Filter events by sentiment"><option value="all">All sentiment</option><option value="risk">Negative</option><option value="watch">Neutral</option><option value="pos">Positive</option></select> -->
+      <!-- MI: renewalGoal — the renewal is treated as the journey's goal. First pass: a HUD
+           chip with a countdown and a term-progress bar, plus a pulsing halo on the renewal
+           flag itself (see render hook) and a slightly larger flag radius (see markerFor).
+           Remove this button, its halo/markerFor code, and the .mi-goal-* CSS to revert. -->
+      <button class="mi-goal-chip" id="btnGoal" type="button" title="Jump to the renewal">
+        <span class="mi-goal-flag"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M4 13.5V0.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 0.5L13.8 5L4 9.5Z" fill="currentColor"/></svg></span>
+        <span class="mi-goal-txt" id="goalTxt">Renewal</span>
+        <span class="mi-goal-track"><span class="mi-goal-fill" id="goalFill"></span></span>
+      </button>
       <button class="iconbtn2" id="btnCfg" title="Configure" aria-label="Configure Customer Journey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       <!-- One action, no menu. CSV and XLS were dropped: the widget's value is the shape of
            the timeline, and a spreadsheet of the same rows is Timeline's job, not this one.
@@ -662,6 +707,112 @@ window.addEventListener('error',function(e){
      flag         = key date
    ===================================================================================== */
 let LAYOUT='split';   // 'split' | 'merged'
+
+/* =====================================================================================
+   MICROINTERACTIONS LAB — everything below tagged "MI:" is new, additive, and reversible.
+   - To turn an effect off: set its flag here to false. No other edit needed.
+   - To remove an effect for good: search this file for its flag name in a "MI:" comment
+     and delete those blocks, plus the matching CSS in the "MICROINTERACTIONS LAB" style
+     block near the top of <style>.
+   - To remove everything at once: set MI_ENABLED to false, or delete this whole block,
+     the CSS block, and every block tagged "MI:".
+   See NOTES.md next to this file for the full list with locations.
+   ===================================================================================== */
+const MI_ENABLED = true;   // master switch — false disables every effect below
+const MI = {
+  hoverSpotlight: MI_ENABLED && true,  // marker grows on hover; rest of its own lane fades
+  laneTransition: MI_ENABLED && true,  // lane/layout toggle cross-fades instead of jumping
+  pageGlide:      MI_ENABLED && true,  // markers glide (not snap) when paging/zoom re-buckets
+  groupSpring:    MI_ENABLED && true,  // the "+N" list springs open
+  popoverRise:    MI_ENABLED && true,  // popover fades and rises in
+  drawerFade:     MI_ENABLED && true,  // drawer backdrop fades in
+  flagWave:       MI_ENABLED && true,  // key-date flags ripple on hover and on first view
+  todayPulse:     MI_ENABLED && true,  // TODAY line pulses once when a chart is first built
+  renewalGoal:    MI_ENABLED && true   // renewal flag + HUD treated as the journey's goal
+};
+/* MI: hoverSpotlight — grow the hovered marker, dim its own lane's other markers. */
+function miSpotlight(point){
+  const series=point&&point.series;
+  if(!series||!isLaneSeries(series)) return;
+  (series.points||[]).forEach(p=>{
+    if(!p.graphic) return;
+    const mine=(p===point);
+    try{ p.graphic.animate({opacity:mine?1:.3},{duration:140}); }catch(e){}
+    const labels=p.dataLabels||(p.dataLabel?[p.dataLabel]:[]);
+    labels.forEach(l=>{ if(l) try{ l.animate({opacity:mine?1:.3},{duration:140}); }catch(e){} });
+  });
+  try{
+    const baseR=(point.options.marker&&point.options.marker.radius)||5;
+    point.graphic.animate({r:baseR+2.5},{duration:140});
+    point._miGrownR=baseR;
+  }catch(e){}
+}
+function miClearSpotlight(point){
+  const series=point&&point.series;
+  if(!series||!isLaneSeries(series)) return;
+  (series.points||[]).forEach(p=>{
+    if(!p.graphic) return;
+    try{ p.graphic.animate({opacity:1},{duration:160}); }catch(e){}
+    const labels=p.dataLabels||(p.dataLabel?[p.dataLabel]:[]);
+    labels.forEach(l=>{ if(l) try{ l.animate({opacity:1},{duration:160}); }catch(e){} });
+    if(p._miGrownR!=null){
+      try{ p.graphic.animate({r:p._miGrownR},{duration:160}); }catch(e){}
+      p._miGrownR=null;
+    }
+  });
+}
+/* MI: laneTransition — cross-fade + slight slide around a lane-changing build(). Not a true
+   per-marker morph between layouts (the chart is destroyed and rebuilt either way, per the
+   existing build() design) — this disguises that jump as a transition instead. */
+function miTransitionBuild(){
+  if(!MI.laneTransition){ build(); return; }
+  const el=document.getElementById('chart');
+  el.classList.add('mi-lane-out');
+  setTimeout(()=>{
+    build();
+    el.classList.remove('mi-lane-out');
+    el.classList.add('mi-lane-in');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('mi-lane-in')));
+  },130);
+}
+/* MI: flagWave — a short ripple at a key-date marker's position. */
+function miFlagWave(point){
+  if(!chart||!point||!point.graphic) return;
+  try{
+    const cx=chart.plotLeft+point.plotX, cy=chart.plotTop+point.plotY;
+    const col=(point.options.marker&&point.options.marker.fillColor)||KEYDATE_PURPLE;
+    const ring=chart.renderer.circle(cx,cy,3)
+      .attr({fill:'none',stroke:col,'stroke-width':2,opacity:.55,zIndex:9}).add();
+    ring.animate({r:16,opacity:0},{duration:560},()=>{try{ring.destroy();}catch(e){}});
+  }catch(e){}
+}
+/* MI: renewalGoal — read the renewal as the journey's goal: days remaining and how much of
+   the current term has elapsed. "Term start" is the latest Contract milestone before the
+   renewal; falls back to one year earlier if none is found (e.g. a brand-new account). */
+function renewalInfo(){
+  const rn=MOMENTS.find(m=>m.renewal);
+  if(!rn) return null;
+  const starts=MOMENTS.filter(m=>m.kind==='milestone'&&(m.detail||{}).tVal==='Contract'&&m.x<rn.x)
+                       .sort((a,b)=>b.x-a.x);
+  const start=starts.length?starts[0].x:rn.x-365*864e5;
+  const span=Math.max(1,rn.x-start);
+  const elapsed=Math.min(span,Math.max(0,TODAY-start));
+  return {rn, start, pct:Math.round((elapsed/span)*100), days:Math.round((rn.x-TODAY)/864e5)};
+}
+function updateGoalChip(){
+  const btn=document.getElementById('btnGoal');
+  if(!btn) return;
+  if(!MI.renewalGoal){ btn.style.display='none'; return; }
+  const info=renewalInfo();
+  if(!info){ btn.style.display='none'; return; }
+  btn.style.display='inline-flex';
+  const txt=document.getElementById('goalTxt'), fill=document.getElementById('goalFill');
+  txt.textContent = info.days>=0 ? `Renewal in ${info.days}d` : `Renewal ${Math.abs(info.days)}d ago`;
+  fill.style.width = Math.max(4,Math.min(100,info.pct))+'%';
+  btn.title = `${displayName(info.rn)} \u2022 ${Highcharts.dateFormat('%e %b %Y',info.rn.x)} \u2022 `+
+    `${info.pct}% of the current term elapsed \u2022 click to jump to it`;
+}
+/* ===================================================================================== */
 const SPARK='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 0C6.6 3.6 8.4 5.4 12 6C8.4 6.6 6.6 8.4 6 12C5.4 8.4 3.6 6.6 0 6C3.6 5.4 5.4 3.6 6 0Z" fill="currentColor"/></svg>';
 /* Key date flag: a solid purple pennant whose pole sits EXACTLY on the date (centre of the
    marker), so the long pole drawn in the render hook can run straight down through the health
@@ -1398,7 +1549,9 @@ function markerFor(m){
    const stroke=m.status?SENT[m.status].c:(MTYPE_COLOR[m.detail.tVal]||MCLUSTER_GREY);
    return {symbol:'diamond',radius:7,fillColor:'#fff',lineColor:stroke,lineWidth:2.25};}
  if(m.kind==='keydate'){ const c=m.renewal?KEYDATE_RENEWAL:KEYDATE_PURPLE;
-   return {symbol:'flag',radius:6,fillColor:c,lineColor:c,lineWidth:0}; }
+   // MI: renewalGoal — the goal flag reads slightly larger than an ordinary key date.
+   const r=(MI.renewalGoal&&m.renewal)?7.5:6;
+   return {symbol:'flag',radius:r,fillColor:c,lineColor:c,lineWidth:0}; }
  return {symbol:'circle',radius:5,fillColor:eventColor(m),lineColor:'#fff',lineWidth:1};
 }
 const LANE_WINDOW={};   // window in days the ladder settled on, per lane
@@ -1734,10 +1887,14 @@ function releaseLabelHover(){
 function refreshLanes(c){
  hideXhair();
  BUCKETS={};
- c.series[0].setData(laneData('milestone'),false,false,false);
- c.series[1].setData(laneData('lifecycle'),false,false,false);
- c.series[2].setData(laneData('keydate'),false,false,false);
- c.redraw(false);
+ // MI: pageGlide — markers glide to their re-bucketed position instead of snapping. A plain
+ // boolean (not a duration object) on setData's animation arg, matching Highcharts' own API;
+ // false here reverts to a hard snap.
+ const anim=(MI.pageGlide)?{duration:280}:false;
+ c.series[0].setData(laneData('milestone'),false,anim,false);
+ c.series[1].setData(laneData('lifecycle'),false,anim,false);
+ c.series[2].setData(laneData('keydate'),false,anim,false);
+ c.redraw(MI.pageGlide);
  positionNav(c);
 }
 /* ---- keyboard access to the +N group ----
@@ -2481,6 +2638,17 @@ function build(){
           .attr({stroke:'#5B9BF3','stroke-width':1,dashstyle:'ShortDash',zIndex:2}).add());
         c.todayEls.push(c.renderer.text('TODAY',tx+4,top+9)
           .css({color:'#0369E9',fontSize:'9px',fontWeight:'600',letterSpacing:'.05em'}).attr({zIndex:2}).add());
+        /* MI: todayPulse — a single soft ring at the TODAY line, once per chart instance (not
+           once per render, since render fires on every redraw/resize/toggle). Pure JS .animate()
+           so it can self-destroy; no CSS class needed. Remove this block to drop the effect. */
+        if(MI.todayPulse && !c.miTodayPulsed){
+          c.miTodayPulsed=true;
+          try{
+            const ring=c.renderer.circle(tx,top+9,3)
+              .attr({fill:'none',stroke:'#5B9BF3','stroke-width':2,opacity:.6,zIndex:2}).add();
+            ring.animate({r:22,opacity:0},{duration:900},()=>{try{ring.destroy();}catch(e){}});
+          }catch(e){}
+        }
       }
 
       // Empty-lane hint: a lane with nothing in the window should say so rather than
@@ -2532,6 +2700,29 @@ function build(){
             .attr({rotation:-90, zIndex:5}).css(css).add());
         });
       }
+
+      /* MI: renewalGoal — a pulsing halo (CSS animation, see .mi-goal-halo) behind the renewal
+         flag, so it reads as the journey's goal rather than just another key date. Redrawn each
+         render like c.laneLbl above, since the flag's pixel position moves with the window/page.
+         updateGoalChip() lives here too: it is idempotent and this is the one place guaranteed
+         to run after every build() and every redraw, without needing build()'s own closing code. */
+      (c.miGoalHalo||[]).forEach(e=>{try{e.destroy();}catch(_){}}); c.miGoalHalo=[];
+      if(MI.renewalGoal){
+        try{
+          /* Positioned from the moment's own x-value and the key-date lane's fixed row,
+             not by searching chart points for one carrying the renewal — the renewal flag
+             may be grouped into a "+N" cluster that wears a DIFFERENT item's marker (see
+             laneData's dom-of-cluster rule), so no point would ever match a point search. */
+          const info=renewalInfo();
+          if(info && laneOn.keydate && info.rn.x>=winMin && info.rn.x<=winMax){
+            const cx=c.plotLeft+xA.toPixels(info.rn.x,true);
+            const cy=yA.toPixels(laneGeom('keydate').y);
+            c.miGoalHalo.push(c.renderer.circle(cx,cy,7)
+              .attr({fill:KEYDATE_RENEWAL,opacity:.5,zIndex:6}).addClass('mi-goal-halo').add());
+          }
+        }catch(e){}
+      }
+      updateGoalChip();
 
       positionNav(c);
       markPopupOwners(c);
@@ -2648,12 +2839,20 @@ function build(){
         mouseOver:function(){
           const c=this.series.chart;
           releaseLabelHover();   // a marker taking hover releases any label that held it
+          // MI: hoverSpotlight — grow this marker, dim the rest of its own lane.
+          if(MI.hoverSpotlight) miSpotlight(this);
           const kg=kdGroup(this);
           if(kg){ showMiniList(kg,this.graphic,kg.length+' key dates'); return; }
+          // MI: flagWave — a short ripple on hover, single (non-grouped) key dates only.
+          if(MI.flagWave && this.series.name==='Key dates') miFlagWave(this);
           if(overPill){ try{ c.tooltip.hide(0); }catch(e){} }   // pill owns the pointer
           else hideMiniList(LIST_GRACE);
         },
-        mouseOut:function(){ if(kdGroup(this)) hideMiniList(); }
+        mouseOut:function(){
+          // MI: hoverSpotlight — restore full opacity/size on the way out.
+          if(MI.hoverSpotlight) miClearSpotlight(this);
+          if(kdGroup(this)) hideMiniList();
+        }
       }}},
     series:{states:{inactive:{opacity:.4}}}},
   series:[
@@ -2784,6 +2983,10 @@ function showMiniList(items, anchorEl, title){
     hideMiniList(0); openDetail(MOMENTS[+r.dataset.i],null);
   });
   mList.classList.add('show');
+  // MI: groupSpring — the list springs open rather than appearing at once. 'show' is removed
+  // on every hide (see hideMiniList below), so the class is always fresh on a new open — no
+  // reflow trick needed to restart the animation.
+  if(MI.groupSpring) mList.classList.add('mi-spring'); else mList.classList.remove('mi-spring');
   const wrap=document.getElementById('wrap').getBoundingClientRect();
   const el=anchorEl&&anchorEl.element?anchorEl.element:anchorEl;
   const b=el.getBoundingClientRect();
@@ -2999,6 +3202,11 @@ function openDetail(m,pt){
  }
 
  pop.innerHTML=h; pop.style.display='block';
+ // MI: popoverRise — a short fade-and-rise on open. closePop() only hides (display:none), it
+ // never removes this class, so the class must be removed and re-added (forcing a reflow in
+ // between) to restart the animation on every open — otherwise the 2nd+ open plays no animation.
+ pop.classList.remove('mi-rise');
+ if(MI.popoverRise){ void pop.offsetWidth; pop.classList.add('mi-rise'); }
  const more=document.getElementById('popMore');
  if(more) more.onclick=ev=>{ev.preventDefault();closePop();openEventDetail(m);};
  if(pt) placePopAt(pt.plotX,pt.plotY);
@@ -3219,6 +3427,9 @@ document.getElementById('todayBtn').onclick=jumpHome;
 
 /* ---- event detail drawer: AI title, signal match, then the engagement itself ---- */
 const edMask=document.getElementById('edMask');
+// MI: drawerFade — gate the .mi-fade CSS (see style block) behind the flag with one class
+// toggle at init, rather than baking the transition into .edmask unconditionally.
+if(MI.drawerFade) edMask.classList.add('mi-fade');
 let edLastFocus=null;
 const SDOT={pos:'#13AD68',neu:'#E08A0C',neg:'#DC3626'};
 /* CS Timeline avatars are neutral circles with initials, not the coloured set Staircase uses.
@@ -3445,7 +3656,12 @@ function syncSelTitle(sel,purpose){
 const layoutSel=document.getElementById('layoutSel');
 layoutSel.value=LAYOUT;
 syncSelTitle(layoutSel,'Layout');
-layoutSel.onchange=e=>{ syncSelTitle(layoutSel,'Layout'); LAYOUT=e.target.value; closePop(); build(); };
+layoutSel.onchange=e=>{
+  syncSelTitle(layoutSel,'Layout'); LAYOUT=e.target.value; closePop();
+  // MI: laneTransition — same cross-fade treatment as the lane toggles, since switching
+  // layout also rearranges where the lanes sit.
+  miTransitionBuild();
+};
 const scenSel=document.getElementById('scenSel');
 Object.keys(SCENARIOS).forEach(k=>{
  const o=document.createElement('option'); o.value=k; o.textContent=SCENARIOS[k].label; scenSel.appendChild(o);
@@ -3586,7 +3802,9 @@ document.querySelectorAll('.tchip').forEach(b=>{
   const kinds=b.dataset.kind.split(',');
   const next=!laneOn[kinds[0]];
   kinds.forEach(k=>{laneOn[k]=next;});
-  closePop(); build();
+  closePop();
+  // MI: laneTransition — cross-fade instead of a hard jump when a lane is shown/hidden.
+  miTransitionBuild();
   syncChips();          // pressed state AND the Show/Hide name come from one place
  };
 });
@@ -3594,6 +3812,17 @@ document.querySelectorAll('.tchip').forEach(b=>{
 /* ---- download ---- */
 const btnPng=document.getElementById('btnPng');
 btnPng.onclick=()=>chart.exportChart({type:'image/png'});
+
+/* MI: renewalGoal — clicking the HUD chip jumps/zooms the chart to the renewal's month, the
+   same jump mechanism the month axis and key-date clicks already use. */
+document.getElementById('btnGoal').onclick=()=>{
+  const info=renewalInfo();
+  if(!info) return;
+  const [a,b]=monthSpan(info.rn.x);
+  closePop();
+  flashRegion(a,b);
+  setWindow(a,b,true);
+};
 
 const keyPop=document.getElementById('keyPop'),btnInfo=document.getElementById('btnInfo');
 let keyPopTimer=null;
