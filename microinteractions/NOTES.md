@@ -148,6 +148,19 @@ animation once the term is e.g. >90% elapsed, and/or a literal checkered "finish
 treatment on the flag's pennant itself if the star+ring combination doesn't feel distinct
 enough in practice.
 
+## Earlier-milestones chip
+
+Not gated by an `MI` flag — this is the existing `#horizonPill`, restyled and moved.
+
+- **Look.** White pill, one line (`12 earlier milestones`), and a teal three-diamond mark
+  (`#horizonPill` styles, `HORIZON_MARK`). The old second phrase ("events start Mar 2026")
+  is gone from the chip; that explanation stays on the tooltip.
+- **Place.** Centred in the milestone lane, inset from the left plot edge so it sits beside
+  the vertical "Milestones" label rather than in the events lane. Merged layout (one shared
+  band) uses that band. If the milestone lane is toggled off, the chip hides.
+- **Where.** CSS `#horizonPill` block after `.renewpill.mi-goal-pill`. JS: `horizonHostLane()`,
+  `positionHorizonPill()`.
+
 ## Known limitation
 
 `build()` fully destroys and recreates the Highcharts chart on every data/layout/filter

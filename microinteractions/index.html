@@ -77,6 +77,14 @@ border-radius:40px;padding:3px 10px;box-shadow:0 1px 3px rgba(52,56,58,.10);font
 .renewpill.mi-goal-pill .rl{color:#552A8C;}
 .renewpill.mi-goal-pill .rgp-icon{width:12px;height:12px;flex:none;color:#552A8C;display:flex;}
 .renewpill.mi-goal-pill .rgp-icon svg{width:100%;height:100%;display:block;stroke:currentColor;stroke-width:1.8;}
+/* Earlier-milestones chip. Scoped to #horizonPill so the renewal pill, which shares
+   .renewpill, keeps its own treatment. White pill, one line of text, teal three-diamond mark. */
+#horizonPill{gap:8px;padding:6px 14px 6px 11px;font-size:13px;color:#3F4A56;
+  border-color:#E4E7EB;box-shadow:0 1px 2px rgba(52,56,58,.05),0 3px 10px rgba(52,56,58,.10);}
+#horizonPill:hover{background:#F7FBFA;border-color:#D5D9DE;}
+#horizonPill .rl{font-weight:500;color:#3F4A56;}
+#horizonPill .hp-ico{width:22px;height:14px;flex:none;display:flex;}
+#horizonPill .hp-ico svg{width:100%;height:100%;display:block;}
 /* ---- hover tooltip ----
    Title is REGULAR weight — the size and the near-black colour already separate it from the
    grey meta line, so bold on top of both over-weights a two-line card. Both sizes are one
@@ -3506,25 +3514,38 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.getElementById('msHist').classList.contains('show')) closeMsHist();
 });
 
-/* ---- events horizon pill ----
-   In the events lane a third of the way down, not centred: the lane is empty here, so a centred
-   pill floats in a large blank area. */
+/* ---- earlier-milestones pill ----
+   Sits in the milestone lane (the lower band), centred on that band and inset from the
+   left plot edge so the vertical "Milestones" label in the margin stays readable.
+   Merged layout has no separate milestone band, so it uses the single shared lane.
+   Hidden when the milestone lane itself is toggled off — there is nowhere to put it. */
+const HORIZON_MARK='<svg viewBox="0 0 34 16" aria-hidden="true">'+
+  '<g fill="none" stroke="#4BA3A4" stroke-width="1.6" stroke-linejoin="round">'+
+  '<polygon points="3,8 7,2.2 11,8 7,13.8"/>'+
+  '<polygon points="13,8 17,2.2 21,8 17,13.8"/>'+
+  '<polygon points="23,8 27,2.2 31,8 27,13.8"/>'+
+  '</g></svg>';
+function horizonHostLane(){
+  if(LAYOUT==='merged') return (laneOn.milestone||laneOn.lifecycle)?'lifecycle':null;
+  return laneOn.milestone?'milestone':null;
+}
 function positionHorizonPill(c){
   const hp=document.getElementById('horizonPill');
   const older=earlierMilestones();
-  if(!atHorizon() || older<1 || !laneOn.lifecycle){ hp.style.display='none'; return; }
+  const lane=horizonHostLane();
+  if(!atHorizon() || older<1 || !lane){ hp.style.display='none'; return; }
   const from=Highcharts.dateFormat('%b %Y',EVENTS_FROM);
-  hp.innerHTML=`<span class="rl">${older} earlier milestone${older===1?'':'s'}</span>`+
-               `<span class="rd">events start ${from}</span>`;
+  hp.innerHTML=`<span class="hp-ico">${HORIZON_MARK}</span>`+
+               `<span class="rl">${older} earlier milestone${older===1?'':'s'}</span>`;
   hp.title=`Lifecycle events are kept for ${EVENTS_MONTHS} months, so none exist before ${from}. `+
            `Open the earlier milestones.`;
   hp.style.display='inline-flex';
   const bx=c.container.getBoundingClientRect(), wrap=document.getElementById('wrap').getBoundingClientRect();
-  const b=laneGeom('lifecycle').band, y=b.to-(b.to-b.from)/3;
-  const pbShown=document.getElementById('pastBtn').style.display==='inline-flex';
+  const y=laneGeom(lane).y;
+  const ph=hp.offsetHeight||32;
   hp.style.right='auto';
-  hp.style.left=((bx.left-wrap.left)+c.plotLeft-10)+'px';
-  hp.style.top=((bx.top-wrap.top)+c.yAxis[0].toPixels(y)-11+(pbShown?26:0))+'px';
+  hp.style.left=((bx.left-wrap.left)+c.plotLeft+8)+'px';
+  hp.style.top=((bx.top-wrap.top)+c.yAxis[0].toPixels(y)-ph/2)+'px';
   hp.onclick=e=>{ e.stopPropagation(); closePop(); openMsHist(hp); };
 }
 function positionRenewPill(c){
