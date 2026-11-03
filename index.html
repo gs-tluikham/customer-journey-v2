@@ -1515,10 +1515,9 @@ function soloMid(){ return laneSolo().y; }
 /* Where the paging chevrons and renewal pill sit: the gap between events and milestones, or
    the middle of the lane when only one is showing. */
 function navY(){ return soloLane()? soloMid() : dividerY(); }
-/* Side labels name the two lanes. They only earn their margin when both lanes are on;
-   a single lane, or the merged layout, already has one obvious band. */
+/* Side labels name the two lanes. They sit in the gutter the chart already had, so the
+   plot width does not change. A single lane, or the merged layout, needs no names. */
 function laneLabelsOn(){ return LAYOUT!=='merged' && !soloLane(); }
-const PLOT_GUTTER=24, LANE_LABEL_MARGIN=44;
 function lanesOn(){
   if(LAYOUT==='merged') return {milestone:false, lifecycle:(laneOn.milestone||laneOn.lifecycle)};
   return {milestone:laneOn.milestone, lifecycle:laneOn.lifecycle};
@@ -2238,7 +2237,7 @@ function build(){
  hoverLabel=null;   // label elements die with the old chart's renderer
  BUCKETS={};
  chart=Highcharts.chart('chart',{
-  chart:{style:{fontFamily:'Noto Sans, sans-serif'},marginLeft:laneLabelsOn()?LANE_LABEL_MARGIN:PLOT_GUTTER,marginRight:24,marginTop:14,marginBottom:marginBottom(),
+  chart:{style:{fontFamily:'Noto Sans, sans-serif'},marginLeft:24,marginRight:24,marginTop:14,marginBottom:marginBottom(),
     zooming:{type:'x',resetButton:{theme:{style:{display:'none'}}}},
     events:{render:function(){
       const c=this,yA=c.yAxis[0],xA=c.xAxis[0];
@@ -2510,7 +2509,7 @@ function build(){
           const mid=(yA.toPixels(b.to)+yA.toPixels(b.from))/2;
           const probe=c.renderer.text(name,0,-200).css(css).add();
           const w=probe.getBBox().width; probe.destroy();
-          c.laneLbl.push(c.renderer.text(name, 18, mid+w/2)
+          c.laneLbl.push(c.renderer.text(name, 15, mid+w/2)
             .attr({rotation:-90, zIndex:5}).css(css).add());
         });
       }
