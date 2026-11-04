@@ -71,14 +71,23 @@ border-radius:40px;padding:3px 10px;box-shadow:0 1px 3px rgba(52,56,58,.10);font
    base .renewpill look but is an unrelated "earlier milestones" affordance). A key-date
    pennant, not a home icon: the chip lives in the key-date lane, so it should read as the
    same mark as the other flags. No trailing arrow. */
-.renewpill.mi-goal-pill{gap:7px;padding:5px 13px 5px 10px;background:#F5F1FC;border-color:#D9CCF1;
-  box-shadow:0 1px 2px rgba(85,42,140,.06);font-size:13px;
+.renewpill.mi-goal-pill{height:28px;gap:7px;padding:0 12px 0 9px;background:#F5F1FC;border-color:#D9CCF1;
+  box-shadow:0 1px 2px rgba(85,42,140,.06);font-size:13px;line-height:1;
   transition:background .12s, border-color .12s;}
 .renewpill.mi-goal-pill:hover{background:#EFE6FA;border-color:#CDBBE8;}
 .renewpill.mi-goal-pill .rl{font-weight:600;color:#552A8C;}
 .renewpill.mi-goal-pill .rd{font-weight:400;color:#A898C7;}
-.renewpill.mi-goal-pill .rgp-icon{width:11px;height:14px;flex:none;color:#552A8C;display:flex;}
-.renewpill.mi-goal-pill .rgp-icon svg{width:100%;height:100%;display:block;fill:currentColor;stroke:none;}
+.renewpill.mi-goal-pill .rgp-icon{width:12px;height:15px;flex:none;color:#552A8C;display:flex;overflow:visible;}
+.renewpill.mi-goal-pill .rgp-icon svg{width:100%;height:100%;display:block;fill:currentColor;stroke:none;overflow:visible;}
+/* MI: renewalGoal — the pennant flutters on the pole while the chip is hovered. The pole stays
+   still; only the fly rotates about its hoist. */
+.renewpill.mi-goal-pill .rgp-fly{transform-box:fill-box;transform-origin:0% 50%;}
+.renewpill.mi-goal-pill:hover .rgp-fly{animation:miFlagFlutter .6s ease-in-out infinite;}
+@keyframes miFlagFlutter{
+  0%,100%{transform:rotate(0deg) scaleX(1);}
+  35%{transform:rotate(-16deg) scaleX(.9);}
+  70%{transform:rotate(11deg) scaleX(1.06);}
+}
 /* Earlier-milestones chip. Scoped to #horizonPill so the renewal pill, which shares
    .renewpill, keeps its own treatment. White pill, one line of text, teal three-diamond mark. */
 #horizonPill{gap:8px;padding:6px 14px 6px 11px;font-size:13px;color:#3F4A56;
@@ -876,7 +885,7 @@ function renewalInfo(){
 const MI_HOME_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 10v9h13v-9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 19v-5.5h4V19" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 /* MI: renewalGoal — the key-date pennant, used on the lane chip only. Same silhouette as
    the flags in the strip: a triangle with a short pole. The popover card keeps the home icon. */
-const MI_FLAG_ICON='<svg viewBox="0 0 14 16" aria-hidden="true"><path d="M2.3.6h1.4V15.2H2.3z"/><path d="M3.5 1.1L12.8 5.5 3.5 9.9z"/></svg>';
+const MI_FLAG_ICON='<svg viewBox="0 0 14 16" aria-hidden="true"><path d="M2.3.6h1.4V15.2H2.3z"/><g class="rgp-fly"><path d="M3.5 1.1L12.8 5.5 3.5 9.9z"/></g></svg>';
 /* MI: renewalGoal — a short, friendly line keyed to how close the renewal is, instead of a
    flat date-only statement. Kept to one sentence so it reads as a nudge, not a report. */
 function miGoalLine(info){

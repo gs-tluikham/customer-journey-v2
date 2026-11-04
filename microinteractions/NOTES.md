@@ -158,7 +158,8 @@ flag or label already occupies that stretch, slides the chip left until it clear
 The chip's mark is a key-date pennant (`MI_FLAG_ICON`), not the home icon. It lives in the
 key-date lane, so it should read as the same flag as the other dates. Lavender fill
 (`#F5F1FC`), `#552A8C` for "Renewal" and the flag, `#A898C7` for "in N mo". No trailing
-arrow. The home icon stays on the popover card only.
+arrow. The home icon stays on the popover card only. The chip is 28px tall. Hovering it
+flutters the pennant (`.rgp-fly`, `miFlagFlutter`); the pole stays still.
 
 ## Earlier-milestones chip
 
