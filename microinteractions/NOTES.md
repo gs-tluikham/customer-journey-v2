@@ -155,6 +155,11 @@ The pill itself now sits in the key-date lane, at the right edge of the strip, i
 up in the events area. `positionRenewPill()` centres it on that strip and, if a key date's
 flag or label already occupies that stretch, slides the chip left until it clears them.
 
+The chip's mark is a key-date pennant (`MI_FLAG_ICON`), not the home icon. It lives in the
+key-date lane, so it should read as the same flag as the other dates. Lavender fill
+(`#F5F1FC`), `#552A8C` for "Renewal" and the flag, `#A898C7` for "in N mo". No trailing
+arrow. The home icon stays on the popover card only.
+
 ## Earlier-milestones chip
 
 Not gated by an `MI` flag — this is the existing `#horizonPill`, restyled and moved.

@@ -68,15 +68,17 @@ border-radius:40px;padding:3px 10px;box-shadow:0 1px 3px rgba(52,56,58,.10);font
 .renewpill .rl{font-weight:600;color:var(--rg70);}
 .renewpill .rd{color:var(--rg60);}
 /* MI: renewalGoal — only ever applied to #renewPill (never #horizonPill, which shares the
-   base .renewpill look but is an unrelated "earlier milestones" affordance). A small home-base
-   icon plus a purple tint, so this pill reads as the same "journey's goal" idea as the in-lane
-   flag and its popover card, rather than a plain neutral info pill. */
-.renewpill.mi-goal-pill{background:#FBF8FD;border-color:#D9C3EA;
-  transition:transform .15s ease, background .12s, border-color .12s;}
-.renewpill.mi-goal-pill:hover{background:#F3E9F8;border-color:#C7A8DE;transform:scale(1.05);}
-.renewpill.mi-goal-pill .rl{color:#552A8C;}
-.renewpill.mi-goal-pill .rgp-icon{width:12px;height:12px;flex:none;color:#552A8C;display:flex;}
-.renewpill.mi-goal-pill .rgp-icon svg{width:100%;height:100%;display:block;stroke:currentColor;stroke-width:1.8;}
+   base .renewpill look but is an unrelated "earlier milestones" affordance). A key-date
+   pennant, not a home icon: the chip lives in the key-date lane, so it should read as the
+   same mark as the other flags. No trailing arrow. */
+.renewpill.mi-goal-pill{gap:7px;padding:5px 13px 5px 10px;background:#F5F1FC;border-color:#D9CCF1;
+  box-shadow:0 1px 2px rgba(85,42,140,.06);font-size:13px;
+  transition:background .12s, border-color .12s;}
+.renewpill.mi-goal-pill:hover{background:#EFE6FA;border-color:#CDBBE8;}
+.renewpill.mi-goal-pill .rl{font-weight:600;color:#552A8C;}
+.renewpill.mi-goal-pill .rd{font-weight:400;color:#A898C7;}
+.renewpill.mi-goal-pill .rgp-icon{width:11px;height:14px;flex:none;color:#552A8C;display:flex;}
+.renewpill.mi-goal-pill .rgp-icon svg{width:100%;height:100%;display:block;fill:currentColor;stroke:none;}
 /* Earlier-milestones chip. Scoped to #horizonPill so the renewal pill, which shares
    .renewpill, keeps its own treatment. White pill, one line of text, teal three-diamond mark. */
 #horizonPill{gap:8px;padding:6px 14px 6px 11px;font-size:13px;color:#3F4A56;
@@ -872,6 +874,9 @@ function renewalInfo(){
 /* MI: renewalGoal — a simple home-base icon, shared by the edge pill and the popover card so
    the two read as the same idea ("this is where the journey is headed") wherever you meet it. */
 const MI_HOME_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 10v9h13v-9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 19v-5.5h4V19" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* MI: renewalGoal — the key-date pennant, used on the lane chip only. Same silhouette as
+   the flags in the strip: a triangle with a short pole. The popover card keeps the home icon. */
+const MI_FLAG_ICON='<svg viewBox="0 0 14 16" aria-hidden="true"><path d="M2.3.6h1.4V15.2H2.3z"/><path d="M3.5 1.1L12.8 5.5 3.5 9.9z"/></svg>';
 /* MI: renewalGoal — a short, friendly line keyed to how close the renewal is, instead of a
    flat date-only statement. Kept to one sentence so it reads as a nudge, not a report. */
 function miGoalLine(info){
@@ -3481,9 +3486,9 @@ function positionRenewPill(c){
  const days=Math.round((rn.x-TODAY)/864e5);
  const months=Math.round(days/30.44);
  // relative distance answers the scanning question; exact date lives in the popover
- // MI: renewalGoal — a small home-base icon and a purple-tinted treatment (mi-goal-pill).
+ // MI: renewalGoal — key-date pennant on a lavender pill. No arrow.
  rp.classList.toggle('mi-goal-pill', !!MI.renewalGoal);
- rp.innerHTML = (MI.renewalGoal ? `<span class="rgp-icon">${MI_HOME_ICON}</span>` : '')+
+ rp.innerHTML = (MI.renewalGoal ? `<span class="rgp-icon">${MI_FLAG_ICON}</span>` : '')+
    `<span class="rl">Renewal</span><span class="rd">in ${months} mo</span>`;
  rp.title=`Renewal date ${Highcharts.dateFormat('%e %b %Y',rn.x)}`;
  rp.style.display='inline-flex';
