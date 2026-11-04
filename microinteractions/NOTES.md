@@ -171,11 +171,26 @@ Not gated by an `MI` flag — this is the existing `#horizonPill`, restyled and 
   (pale `#AED6D6`, mid `#81BFBF`, front `#4BA3A4`), each shifted right over the one behind
   it — not three separate outlines in a row. The old second phrase ("events start Mar 2026")
   is gone from the chip; that explanation stays on the tooltip.
+- **Height.** 28px, same as the paging buttons.
+- **Hover.** `MI.horizonSpread` eases the three diamonds apart (`miHorizonShift`: back diamond
+  left, front diamond right, middle stays). Written as an SVG `transform`, because a CSS
+  transform on these groups is computed but not painted.
 - **Place.** Centred in the milestone lane, inset from the left plot edge so it sits beside
   the vertical "Milestones" label rather than in the events lane. Merged layout (one shared
   band) uses that band. If the milestone lane is toggled off, the chip hides.
 - **Where.** CSS `#horizonPill` block after `.renewpill.mi-goal-pill`. JS: `horizonHostLane()`,
   `positionHorizonPill()`.
+
+## Hover passes (health, key date)
+
+- **Health bars** (`MI.healthHover`). The bar under the pointer stays at full colour; the other
+  readings in the strip fade to 28% opacity. Wired on the existing transparent hit rects in
+  the render hook (`miHealthFocus` / `miHealthClear`), so the tooltip still opens.
+- **Single key date** (`MI.flagWiggle`). The pennant sways once (`.mi-wiggle`, about half a
+  second) and stops. Grouped "+N" flags are skipped — those open the list. The ripple
+  (`flagWave`) still plays alongside it.
+
+Item 5 of the latest request was left blank.
 
 ## Known limitation
 

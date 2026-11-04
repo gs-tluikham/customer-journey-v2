@@ -90,12 +90,23 @@ border-radius:40px;padding:3px 10px;box-shadow:0 1px 3px rgba(52,56,58,.10);font
 }
 /* Earlier-milestones chip. Scoped to #horizonPill so the renewal pill, which shares
    .renewpill, keeps its own treatment. White pill, one line of text, teal three-diamond mark. */
-#horizonPill{gap:8px;padding:6px 14px 6px 11px;font-size:13px;color:#3F4A56;
+#horizonPill{height:28px;gap:8px;padding:0 14px 0 11px;font-size:13px;line-height:1;color:#3F4A56;
   border-color:#E4E7EB;box-shadow:0 1px 2px rgba(52,56,58,.05),0 3px 10px rgba(52,56,58,.10);}
 #horizonPill:hover{background:#F7FBFA;border-color:#D5D9DE;}
 #horizonPill .rl{font-weight:500;color:#3F4A56;}
-#horizonPill .hp-ico{width:22px;height:14px;flex:none;display:flex;}
-#horizonPill .hp-ico svg{width:100%;height:100%;display:block;}
+#horizonPill .hp-ico{width:22px;height:14px;flex:none;display:flex;overflow:visible;}
+#horizonPill .hp-ico svg{width:100%;height:100%;display:block;overflow:visible;}
+/* MI: horizonSpread — the spread itself is an SVG transform (see miHorizonShift).
+   A CSS transform on these groups is computed but not painted, so it cannot do the job. */
+/* MI: flagWiggle — one sway, then rest. Pivots on the hoist (the left edge of the pennant). */
+.mi-wiggle{transform-box:fill-box;transform-origin:0% 55%;animation:miWiggle .48s ease-in-out 1;}
+@keyframes miWiggle{
+  0%{transform:rotate(0deg);}
+  22%{transform:rotate(-11deg);}
+  48%{transform:rotate(8deg);}
+  72%{transform:rotate(-4deg);}
+  100%{transform:rotate(0deg);}
+}
 /* ---- hover tooltip ----
    Title is REGULAR weight — the size and the near-black colour already separate it from the
    grey meta line, so bold on top of both over-weights a two-line card. Both sizes are one
@@ -760,8 +771,11 @@ const MI = {
   popoverRise:    MI_ENABLED && true,  // popover fades and rises in
   drawerFade:     MI_ENABLED && true,  // drawer backdrop fades in
   flagWave:       MI_ENABLED && true,  // key-date flags ripple on hover and on first view
+  flagWiggle:     MI_ENABLED && true,  // a single key date wiggles once on hover, then stops
+  healthHover:    MI_ENABLED && true,  // hovered health bar stays bright; the others dim
+  horizonSpread:  MI_ENABLED && true,  // earlier-milestones diamonds ease apart on hover
   todayPulse:     MI_ENABLED && true,  // TODAY line pulses once when a chart is first built
-  renewalGoal:    MI_ENABLED && true   // renewal flag (in-lane): progress ring, star, spring-pop
+  renewalGoal:    MI_ENABLED && true   // renewal chip: pennant, flutter, popover card
 };
 /* MI: renewalGoal — a reusable "pop" easing for the goal flag's extra-springy hover bounce
    (classic ease-out-elastic). Registered once, globally, like Highcharts' own named easings.
@@ -866,6 +880,55 @@ function miFlagWave(point){
       .css({pointerEvents:'none'}).add();
     ring.animate({r:16,opacity:0},{duration:560},()=>{try{ring.destroy();}catch(e){}});
   }catch(e){}
+}
+/* MI: flagWiggle — one short sway of a single key-date pennant, then it stops. Grouped
+   flags ("+N") are excluded by the caller. The class is removed when the animation ends
+   so the next hover can play it again. CSS transform only; the pole underneath is a
+   separate overlay and stays put. */
+function miFlagWiggle(point){
+  const el=point&&point.graphic&&point.graphic.element;
+  if(!el) return;
+  el.classList.remove('mi-wiggle');
+  void el.getBoundingClientRect();
+  el.classList.add('mi-wiggle');
+  const done=()=>{ el.classList.remove('mi-wiggle'); el.removeEventListener('animationend', done); };
+  el.addEventListener('animationend', done);
+}
+/* MI: healthHover — the bar under the pointer stays at full colour; every other reading
+   in the strip drops back. Hit targets (the transparent rects) are not faded, so the
+   pointer can still move from bar to bar. */
+function miHealthFocus(c, seg){
+  (c.miHbars||[]).forEach(el=>{
+    try{ el.animate({opacity: el===seg ? 1 : 0.28},{duration:140}); }catch(e){}
+  });
+}
+function miHealthClear(c){
+  (c.miHbars||[]).forEach(el=>{ try{ el.animate({opacity:1},{duration:140}); }catch(e){} });
+}
+/* MI: horizonSpread — ease the back diamond left and the front diamond right, in the
+   icon's own viewBox units (about 5px each way at the drawn size). The middle diamond
+   stays. CSS transforms on these <g>s do not paint, so this writes the SVG attribute. */
+let miHorizonGen=0;
+function miHorizonShift(tx1, tx3){
+  const hp=document.getElementById('horizonPill');
+  if(!hp||!MI.horizonSpread) return;
+  const g1=hp.querySelector('.hp-d1'), g3=hp.querySelector('.hp-d3');
+  if(!g1||!g3) return;
+  const gen=++miHorizonGen;
+  const a1=parseFloat(g1.getAttribute('data-tx')||'0');
+  const a3=parseFloat(g3.getAttribute('data-tx')||'0');
+  const t0=performance.now(), dur=260;
+  function frame(now){
+    if(gen!==miHorizonGen) return;
+    const t=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-t,3);
+    const v1=a1+(tx1-a1)*e, v3=a3+(tx3-a3)*e;
+    g1.setAttribute('transform','translate('+v1.toFixed(2)+',0)');
+    g3.setAttribute('transform','translate('+v3.toFixed(2)+',0)');
+    g1.setAttribute('data-tx',String(v1));
+    g3.setAttribute('data-tx',String(v3));
+    if(t<1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
 /* MI: renewalGoal — read the renewal as the journey's goal: days remaining and how much of
    the current term has elapsed. "Term start" is the latest Contract milestone before the
@@ -2506,7 +2569,7 @@ function build(){
       const c=this,yA=c.yAxis[0],xA=c.xAxis[0];
       // — health band on the axis, then stage strip beneath it —
       // Uses the same anchor as the today marker so the colour stops exactly at the line.
-      (c.healthEls||[]).forEach(e=>e.destroy()); c.healthEls=[];
+      (c.healthEls||[]).forEach(e=>e.destroy()); c.healthEls=[]; c.miHbars=[];
       /* Health and stage come from elsewhere in Gainsight — Scorecard admin and a CRM-mapped
          picklist — not from whatever configures the CJ types. So each strip is gated on ITS
          OWN data rather than on the widget being configured: an account can have a health
@@ -2541,7 +2604,21 @@ function build(){
            is a weekly series, or count the weeks. crispEdges keeps the hairline from being
            anti-aliased into a grey smudge at 1px. */
         const seg=c.renderer.rect(c.plotLeft+x1,hBase-hh,Math.max(1,x2-x1-1),hh,0)
-          .attr({fill:HBAND(p.v),zIndex:6,'shape-rendering':'crispEdges'}).add();
+          .attr({fill:HBAND(p.v),zIndex:6,opacity:1,'shape-rendering':'crispEdges'})
+          .css({pointerEvents:'none'}).add();
+        seg.addClass('mi-hbar');
+        hit.addClass('mi-hhit');
+        /* MI: healthHover — brighten this reading, dim the others. The transparent hit
+           rect is what receives the pointer; the coloured bar itself does not. */
+        if(MI.healthHover){
+          hit.on('mouseover',()=>miHealthFocus(c,seg));
+          hit.on('mouseout',e=>{
+            const rt=e&&e.relatedTarget;
+            if(rt&&rt.classList&&rt.classList.contains('mi-hhit')) return;
+            miHealthClear(c);
+          });
+        }
+        c.miHbars.push(seg);
         c.healthEls.push(seg,hit);
       });
       // no health data ahead of the marker — dashed neutral run
@@ -2929,8 +3006,11 @@ function build(){
           if(MI.hoverSpotlight) miSpotlight(this);
           const kg=kdGroup(this);
           if(kg){ showMiniList(kg,this.graphic,kg.length+' key dates'); return; }
-          // MI: flagWave — a short ripple on hover, single (non-grouped) key dates only.
-          if(MI.flagWave && this.series.name==='Key dates') miFlagWave(this);
+          // MI: flagWave / flagWiggle — single key dates only. A group opens its list instead.
+          if(!kg && this.series.name==='Key dates'){
+            if(MI.flagWave) miFlagWave(this);
+            if(MI.flagWiggle) miFlagWiggle(this);
+          }
           if(overPill){ try{ c.tooltip.hide(0); }catch(e){} }   // pill owns the pointer
           else hideMiniList(LIST_GRACE);
         },
@@ -3460,9 +3540,9 @@ document.addEventListener('keydown',e=>{
    painted over the one behind it, not three separate diamonds in a row. */
 const HORIZON_MARK='<svg viewBox="1 4 64 40" aria-hidden="true">'+
   '<g fill="none" stroke-linejoin="miter">'+
-  '<polygon points="21,9 36,24 21,39 6,24" stroke="#AED6D6" stroke-width="6.2"/>'+
-  '<polygon points="33,9 48,24 33,39 18,24" stroke="#81BFBF" stroke-width="6.2"/>'+
-  '<polygon points="45,9 60,24 45,39 30,24" stroke="#4BA3A4" stroke-width="6.2"/>'+
+  '<g class="hp-d hp-d1"><polygon points="21,9 36,24 21,39 6,24" stroke="#AED6D6" stroke-width="6.2"/></g>'+
+  '<g class="hp-d hp-d2"><polygon points="33,9 48,24 33,39 18,24" stroke="#81BFBF" stroke-width="6.2"/></g>'+
+  '<g class="hp-d hp-d3"><polygon points="45,9 60,24 45,39 30,24" stroke="#4BA3A4" stroke-width="6.2"/></g>'+
   '</g></svg>';
 function horizonHostLane(){
   if(LAYOUT==='merged') return (laneOn.milestone||laneOn.lifecycle)?'lifecycle':null;
@@ -3478,7 +3558,11 @@ function positionHorizonPill(c){
                `<span class="rl">${older} earlier milestone${older===1?'':'s'}</span>`;
   hp.title=`Lifecycle events are kept for ${EVENTS_MONTHS} months, so none exist before ${from}. `+
            `Open the earlier milestones.`;
+  hp.classList.toggle('mi-spread', !!MI.horizonSpread);
   hp.style.display='inline-flex';
+  /* innerHTML just replaced the diamonds. If the pointer is already on the pill,
+     open them again rather than waiting for the next enter. */
+  if(hp.matches(':hover')) miHorizonShift(-14, 14);
   const bx=c.container.getBoundingClientRect(), wrap=document.getElementById('wrap').getBoundingClientRect();
   const y=laneGeom(lane).y;
   const ph=hp.offsetHeight||32;
@@ -3487,6 +3571,10 @@ function positionHorizonPill(c){
   hp.style.top=((bx.top-wrap.top)+c.yAxis[0].toPixels(y)-ph/2)+'px';
   hp.onclick=e=>{ e.stopPropagation(); closePop(); openMsHist(hp); };
 }
+/* MI: horizonSpread — diamonds ease apart for as long as the pointer is on the pill.
+   Listeners live on the button, which survives the innerHTML refresh above. */
+document.getElementById('horizonPill').addEventListener('mouseenter',()=>miHorizonShift(-14,14));
+document.getElementById('horizonPill').addEventListener('mouseleave',()=>miHorizonShift(0,0));
 function positionRenewPill(c){
  const rp=document.getElementById('renewPill');
  const rn=MOMENTS.find(m=>m.renewal);
