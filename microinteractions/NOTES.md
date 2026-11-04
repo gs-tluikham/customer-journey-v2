@@ -181,6 +181,14 @@ Not gated by an `MI` flag — this is the existing `#horizonPill`, restyled and 
 - **Where.** CSS `#horizonPill` block after `.renewpill.mi-goal-pill`. JS: `horizonHostLane()`,
   `positionHorizonPill()`.
 
+## Expanded view fills leftover rows
+
+Fullscreen used to size each lane to the rows its current grouping needed, then give every
+leftover pixel to events. That painted empty rows above the last label while `+N` groups
+were still closed. `fitFullscreenLanes()` now budgets every row that fits at the minimum
+pitch and shares it: events and milestones each take the finest window the pair can afford
+(`fsChooseRows`). A lane that is already showing every date does not keep the spare rows.
+
 ## Hover passes (health, key date)
 
 - **Health bars** (`MI.healthHover`). The bar under the pointer stays at full colour; the other

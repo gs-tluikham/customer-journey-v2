@@ -2496,50 +2496,75 @@ window.__t={laneOn,rowYs,rowCount,MOMENTSNOW:()=>MOMENTS,laneWindow:l=>LANE_WIND
    finer. Rows and the window are circular — the ladder's answer depends on how many rows it
    has — so this is a small search rather than a formula: set a candidate, ask the ladder what
    it would settle on, stop when the answer is good enough. Three iterations at most. */
-/* ---- fullscreen: size the lanes to the data ----
-   Fullscreen used to allocate a fixed milestone lane and hand the rest to events, so a sparse
-   account got 20 event rows and used 6 — 444px of empty lane below the last label.
-
-   Now the rows the data uses are spread across the WHOLE available height: the pitch stretches
-   until the two lanes fill the frame, so there is no block of empty lane below the last label
-   and no gap under the widget.
-
-   Both lanes share the one pitch, so the spacing matches either side of the divider, and each
-   lane's height is simply its own row count at that pitch — a lane with more rows gets more
-   height, without a separate proportional-split rule.
-
-   The trade, accepted deliberately: on a sparse account the pitch becomes large (measured ~119px
-   for six rows) and labels sit far apart. FS_PITCH_MAX is the ceiling if that ever needs
-   reining in. */
+/* ---- fullscreen: spend leftover rows on whichever lane can still open ----
+   The frame can hold more rows than the compact widget. A row that nothing sits on is
+   wasted if the other lane — or the same lane — still has a +N group. So the budget is
+   "every row that still fits at FS_PITCH_MIN", and events and milestones share it: each
+   takes the finest window whose rows fit in what is left for the pair. A lane that is
+   already showing every date does not keep empty rows; those rows go to the lane that
+   can still reveal something. Only when both are fully open does the pitch stretch, and
+   then only up to FS_PITCH_MAX, so a quiet account does not get a hundred pixels between
+   two labels. */
+function fsLaneRungs(lane){
+  const items=MOMENTS.filter(m=>laneKinds(lane).includes(m.kind)&&visible(m));
+  if(!items.length) return [{win:1e9, rows:1}];
+  return WINDOW_LADDER.map(win=>({
+    win,
+    rows:Math.max(1, rowsRequired(partitionSeparately(items, win, lane), lane))
+  }));
+}
+function fsChooseRows(lanes, maxTotal){
+  const costs={};
+  lanes.forEach(l=>{ costs[l]=fsLaneRungs(l); });
+  if(lanes.length===1){
+    const c=costs[lanes[0]];
+    let best=c[c.length-1];
+    c.forEach(r=>{ if(r.rows<=maxTotal && (r.win<best.win || (r.win===best.win && r.rows>best.rows))) best=r; });
+    return {[lanes[0]]: Math.min(maxTotal, best.rows)};
+  }
+  const [a,b]=lanes;
+  let best=null;
+  costs[a].forEach(ra=>{
+    costs[b].forEach(rb=>{
+      if(ra.rows+rb.rows>maxTotal) return;
+      const score=ra.win+rb.win, used=ra.rows+rb.rows;
+      if(!best || score<best.score || (score===best.score && used>best.used))
+        best={score, used, rows:{[a]:ra.rows, [b]:rb.rows}};
+    });
+  });
+  if(best) return best.rows;
+  /* Even the widest windows need more rows than the frame has. Split the rows by demand
+     and let the ladder fold the overflow, same as compact when it hits its ceiling. */
+  const ca=costs[a][costs[a].length-1], cb=costs[b][costs[b].length-1];
+  const aRows=Math.max(1, Math.min(maxTotal-1, Math.round(maxTotal*ca.rows/Math.max(1,ca.rows+cb.rows))));
+  return {[a]:aRows, [b]:Math.max(1, maxTotal-aRows)};
+}
 function fitFullscreenLanes(){
   if(!isMaxed()){ FS_LANES=null; FS_PITCH=null; return; }
-  FS_LANES=null; FS_PITCH=null;                       // measure against the unfitted geometry
+  FS_LANES=null; FS_PITCH=null;
   const avail=Math.max(200, plotHPx()-LANE_GAP-kdBase());
-  const need=lane=>{
-    const kinds=laneKinds(lane);
-    const mine=MOMENTS.filter(m=>kinds.includes(m.kind)&&visible(m));
-    if(!mine.length) return 1;
-    return Math.max(1, rowsRequired(groupByLadder(mine,lane).list,lane));
-  };
-  const msRows=soloLane()==='lifecycle'?0:need('milestone');
-  const evRows=soloLane()==='milestone'?0:need('lifecycle');
-
-  /* One pitch, shared, so spacing matches either side of the divider.
-     NO lower clamp at ROW_PX. Forcing a 30px minimum overflowed the lane when the data wanted
-     more rows than the height could hold at 30 — the axis then compressed, the ladder saw fewer
-     rows than it had asked for and coarsened, and burst18 fell from 20 markers' worth of rows to
-     11. FS_PITCH_MIN is the real floor: below it a 16px label line would collide with the next
-     row, and at that point coarsening IS the correct answer, so the ladder is allowed to do it. */
+  const solo=soloLane();
+  const lanes=[];
+  if(solo!=='lifecycle') lanes.push('milestone');
+  if(solo!=='milestone') lanes.push('lifecycle');
+  const overhead=(ROW_OFF+8)*lanes.length;
+  const maxTotal=Math.max(lanes.length, Math.floor((avail-overhead)/FS_PITCH_MIN)+lanes.length);
+  const chosen=fsChooseRows(lanes, maxTotal);
+  const msRows=chosen.milestone||0, evRows=chosen.lifecycle||0;
   const room=avail-(msRows?ROW_OFF+8:0)-(evRows?ROW_OFF+8:0);
-  const gaps=Math.max(1,(msRows?msRows-1:0)+(evRows?evRows-1:0));
+  const gaps=Math.max(1,(msRows?Math.max(0,msRows-1):0)+(evRows?Math.max(0,evRows-1):0));
   FS_PITCH=Math.max(FS_PITCH_MIN, Math.min(FS_PITCH_MAX, Math.floor(room/gaps)));
-
-  /* Milestones take what their rows need at that pitch; EVENTS TAKE THE REMAINDER. Sizing both
-     from row counts left a 6-8px shortfall from two independent floor() calls — giving the
-     remainder to one lane makes the fill exact by construction rather than by arithmetic that
-     has to come out even. */
-  const ms=msRows?lanePxFor(msRows,FS_PITCH):48;
-  FS_LANES={ms, ev: Math.max(60, avail-ms)};
+  const msH=msRows?lanePxFor(msRows,FS_PITCH):0;
+  const evH=evRows?lanePxFor(evRows,FS_PITCH):0;
+  /* A few pixels are left because the pitch is an integer. They go to the events band
+     only when they cannot reach another row — handing the band the whole remainder is
+     what used to invent empty rows above the last label. */
+  const slack=avail-(msH+evH);
+  const absorb=slack>0 && slack<FS_PITCH-8;
+  FS_LANES={
+    ms: msRows?msH:48,
+    ev: evRows?evH+(absorb?slack:0):Math.max(60, avail-(msRows?msH:48))
+  };
 }
 function chooseEventRows(){
   if(isMaxed()) return;                     // fullscreen takes the remaining height instead
