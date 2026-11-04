@@ -71,13 +71,13 @@ border-radius:40px;padding:3px 10px;box-shadow:0 1px 3px rgba(52,56,58,.10);font
    base .renewpill look but is an unrelated "earlier milestones" affordance). A key-date
    pennant, not a home icon: the chip lives in the key-date lane, so it should read as the
    same mark as the other flags. No trailing arrow. */
-.renewpill.mi-goal-pill{height:28px;gap:7px;padding:0 12px 0 9px;background:#F5F1FC;border-color:#D9CCF1;
+.renewpill.mi-goal-pill{height:24px;gap:6px;padding:0 10px 0 8px;background:#F5F1FC;border-color:#D9CCF1;
   box-shadow:0 1px 2px rgba(85,42,140,.06);font-size:13px;line-height:1;
   transition:background .12s, border-color .12s;}
 .renewpill.mi-goal-pill:hover{background:#EFE6FA;border-color:#CDBBE8;}
 .renewpill.mi-goal-pill .rl{font-weight:600;color:#552A8C;}
 .renewpill.mi-goal-pill .rd{font-weight:400;color:#A898C7;}
-.renewpill.mi-goal-pill .rgp-icon{width:12px;height:15px;flex:none;color:#552A8C;display:flex;overflow:visible;}
+.renewpill.mi-goal-pill .rgp-icon{width:11px;height:13px;flex:none;color:#552A8C;display:flex;overflow:visible;}
 .renewpill.mi-goal-pill .rgp-icon svg{width:100%;height:100%;display:block;fill:currentColor;stroke:none;overflow:visible;}
 /* MI: renewalGoal — the pennant flutters on the pole while the chip is hovered. The pole stays
    still; only the fly rotates about its hoist. */
@@ -493,12 +493,12 @@ box-shadow:0 8px 24px rgba(52,56,58,.18),0 2px 6px rgba(52,56,58,.10);padding:15
 border:none;background:none;padding:0;font-family:inherit;cursor:pointer;}
 .slink:hover{text-decoration:underline;}
 .divide{height:1px;background:var(--rg30);margin:2px 0 14px;}
-.edgebtn{position:absolute;z-index:40;display:none;align-items:center;gap:6px;background:#fff;color:#5F6C7A;border:1px solid #D5D9DE;
-border-radius:40px;padding:5px 11px 5px 9px;cursor:pointer;box-shadow:0 2px 6px rgba(52,56,58,.12);font-size:12.5px;font-family:inherit;}
+.edgebtn{position:absolute;z-index:40;display:none;align-items:center;gap:6px;height:28px;background:#fff;color:#5F6C7A;border:1px solid #D5D9DE;
+border-radius:40px;padding:0 11px 0 9px;cursor:pointer;box-shadow:0 2px 6px rgba(52,56,58,.12);font-size:12.5px;font-family:inherit;line-height:1;}
 .edgebtn:hover{background:#F5F7F9;}
 .edgebtn .cv{font-size:17px;line-height:1;margin-top:-1px;color:#5F6C7A;}
 .edgebtn .n{background:#F5F7F9;color:#5F6C7A;border-radius:40px;font-size:11px;font-weight:600;padding:1px 7px;}
-#todayBtn{padding:5px 13px;font-weight:600;color:#3C4A57;}
+#todayBtn{padding:0 13px;font-weight:600;color:#3C4A57;}
 #todayBtn.active{background:#E6F0FD;border-color:#9CC2F5;color:#0369E9;}
 #todayBtn.active:hover{background:#D2E4FB;}
 /* ---- v2: AI provenance styling ----
@@ -3357,7 +3357,7 @@ function closePop(){
 function positionNav(c){
  c=c||chart; if(!c)return;
  const box=c.container.getBoundingClientRect(),wrap=document.getElementById('wrap').getBoundingClientRect();
- const midTop=(box.top-wrap.top)+c.yAxis[0].toPixels(navY())-15;
+ const midTop=(box.top-wrap.top)+c.yAxis[0].toPixels(navY())-14;
  /* FIX 3, part 2: counts use passesFilters(), not visible(), so a future renewal stays in
     the forward count once you page away and the pill stops representing it. While the pill
     IS showing, the renewal is excluded from that count — the chip already stands for it. */
