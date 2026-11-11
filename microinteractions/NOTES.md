@@ -1,230 +1,50 @@
-# Microinteractions lab — change log
+# Microinteractions lab — notes
 
-This file lists every change made on top of the main prototype for the microinteractions
-experiment. **Nothing here touches the main published page** (`/index.html` one level up) —
-all of it lives only in `microinteractions/index.html`.
+`microinteractions/index.html` is the **final** build (`Customer Journey — final.html`) with a
+small set of microinteractions added on top. The main prototype at the repo root is untouched.
 
-Every new line of code in `index.html` is tagged `MI:` in a comment, and the whole batch of new
-CSS/HTML/JS lives in three clearly fenced blocks (search for `MICROINTERACTIONS LAB`):
+## What the final build already does (kept as is)
 
-1. A `<style>` block, inserted right after the existing `.ovsep` rule.
-2. A `<script>` block, inserted right after `let LAYOUT='split';`, containing the `MI` config
-   object and every new helper function.
+These were in the final file, so the lab does not add its own version:
 
-(v1 also added a toolbar `<button id="btnGoal">` HUD chip before `#btnCfg`; it was removed
-entirely after feedback that it was redundant with the renewal's own flag — see "Renewal-date
-gamification" below.)
+- **Customer** picker in the rig bar. *Joint (Staircase + CS)* shows Staircase events and uses
+  `ROWS_JOINT` rows; *CS only* drops lifecycle and manual events, hides the Events toggle, and
+  uses `ROWS_CS` rows. Height is fixed per customer type, never per account.
+- **Renewal chip** on the key-date strip: flag, "Renewal", "in N mo", and an arrow. It drops
+  to the compact "in N mo →" form, or lifts above the strip, when a key-date flag would be
+  under it (`chipMode`, `positionRenewPill`). On hover the pennant waves and the arrow nudges.
+- **Earlier-milestones chip**: a stack of three diamonds that fans out on hover.
+- **Key-date flags** wave on their pole when hovered (`.kd-flag`, `cjWave`).
+- **TODAY** dot pulses (`today-pulse`).
+- **Popovers and lists** fade and rise in (`cjIn`).
+- **Health bars**: hovering one fades the other weeks (`focusBar`).
 
-## How to turn effects off
+## What the lab adds
 
-Every effect is gated by a flag in the `MI` object near the top of the script:
+All tagged `MI:` and gated by the `MI` flags near the top of the script
+(`MI_ENABLED` switches all of them off). Styles are in the "MICROINTERACTIONS LAB" block.
 
-```js
-const MI_ENABLED = true;   // master switch — set to false to disable every effect at once
-const MI = {
-  hoverSpotlight: MI_ENABLED && true,
-  laneTransition: MI_ENABLED && true,
-  pageGlide:      MI_ENABLED && true,
-  groupSpring:    MI_ENABLED && true,
-  popoverRise:    MI_ENABLED && true,
-  drawerFade:     MI_ENABLED && true,
-  flagWave:       MI_ENABLED && true,
-  todayPulse:     MI_ENABLED && true,
-  renewalGoal:    MI_ENABLED && true
-};
-```
+- **hoverSpotlight** — a hovered marker grows and the rest of its lane fades. Key-date flags
+  only take the fade (the final build switches their swell off). `miSpotlight` /
+  `miClearSpotlight`, wired in `plotOptions.scatter.point.events`.
+- **laneTransition** — showing or hiding a type, changing Customer, or changing Scenario
+  cross-fades the old frame over the rebuilt chart instead of jumping. `miTransitionBuild`.
+- **pageGlide** — paging re-buckets markers and they glide to their new place.
+  `refreshLanes`.
+- **drawerFade** — the event drawer's backdrop fades in with the slide. `.edmask.mi-fade`.
 
-Flip any single flag to `false` to turn that one effect off, or set `MI_ENABLED = false` to
-turn all nine off at once, with no other edit needed. All of the gating `if(MI.xxx)` checks
-already exist at every call site — the flags are the only thing that needs to change.
+Fixes carried over (not gated, because they are bugs rather than effects):
 
-## How to remove an effect for good
+- **Health readout clears the key-date card.** It moves above, below, or beside the flag's
+  tooltip instead of covering it. `placeHealthTip`.
+- **Health hover area matches the bar.** The invisible target is the drawn bar plus 2px, not
+  the whole strip plus 4px into the plot, and the readout closes when the pointer moves to a
+  marker or anywhere else. A redraw drops the bar without a mouseout, so a document-level
+  move check closes it.
+- **Earlier-milestones chip is 28px**, matching the paging buttons.
 
-Search the file for its flag name inside a `MI:` comment (e.g. search `MI: hoverSpotlight`) —
-every block tagged with that name is part of that effect. Delete those blocks, plus the
-matching rule(s) in the "MICROINTERACTIONS LAB" CSS block if it has one. The table below lists
-exactly where each effect's code lives.
+## Dropped from the earlier (v3-based) lab
 
-## The 7 requested microinteractions + the renewal-goal treatment
-
-| # | Effect | Flag | What it does | Where it's wired |
-|---|---|---|---|---|
-| 1 | Hover spotlight | `hoverSpotlight` | Hovered marker grows (+2.5px radius); every other marker (and its label) in the **same lane** fades to 30% opacity. Both animate back on mouse-out. | `miSpotlight()` / `miClearSpotlight()` functions; called from `plotOptions.scatter.point.events.mouseOver` / `mouseOut`. |
-| 2 | Lane transition | `laneTransition` | **v2 (revised after feedback — v1 "still felt like a jump")**: a genuine two-layer cross-fade. A static, click-through clone of the chart's last rendered frame sits on top while the real chart rebuilds underneath (instant, but hidden under the clone), then the clone fades away to reveal the already-finished new chart. New content is on screen the whole time, so there's no blank gap — which is what v1's fade-to-blank-then-fade-in read as a cut. | `miTransitionBuild()`; CSS classes `.mi-lane-snap` / `.mi-lane-snap.mi-fade-out`. Called from the `.tchip` click handler and `layoutSel.onchange` (both previously called `build()` directly). |
-| 3 | Page/zoom glide | `pageGlide` | When paging through months or zooming re-buckets the data, markers animate (280ms) to their new bucketed position instead of snapping. The month-span animation itself (`setExtremes`) was already animated before this lab — this adds motion to the *re-bucket* step that follows it. | `refreshLanes(c)` — `animation` arg on the three `series[i].setData(...)` calls, and `c.redraw(MI.pageGlide)`. |
-| 4 | "+N" group spring | `groupSpring` | The key-date group popup list springs open (scale .85→1, overshoot easing, 280ms) instead of appearing instantly. | CSS `.mlist.mi-spring` + `@keyframes miSpring`; class added/removed in `showMiniList()` right after `mList.classList.add('show')` (removed on every hide, so it always replays on reopen). |
-| 5 | Popover rise | `popoverRise` | The detail popover fades up 6px over 180ms when it opens. | CSS `.pop.mi-rise` + `@keyframes miFadeRise`; class removed-then-re-added (forces a reflow) in `openDetail()` right after `pop.style.display='block'`, so repeated opens always replay it. |
-| 5b | Drawer fade | `drawerFade` | The full-screen drawer backdrop (`#edMask`) fades in/out instead of appearing/disappearing instantly. (The drawer panel itself already slid in via `transform:translateX` before this lab — this only adds the backdrop fade.) | CSS `.edmask.mi-fade{opacity:...}` / `.edmask.mi-fade.show{opacity:1}`; the `mi-fade` class is added once at init, right after `const edMask=document.getElementById('edMask')`, so no changes were needed in `openEventDetail()` / `closeEventDetail()` — they already just toggle `.show`. |
-| 6 | Key-date flag wave | `flagWave` | A short ripple ring expands and fades (560ms) from a key-date flag when you hover it (grouped flags, which open the mini-list instead, are excluded). **Fixed after feedback**: the ripple was missing `pointer-events:none`, so it sat over the marker and stole the mouseover/mouseout pair from the point underneath as it grew — that's what made the native tooltip "blink." Now set on the ring, same as every other chart overlay (`kdPoles`, `laneLbl`, the TODAY-pulse ring, etc.). | `miFlagWave(point)`; called from `plotOptions.scatter.point.events.mouseOver` when `this.series.name==='Key dates'` and the point isn't a group. |
-| 7 | Today-line pulse | `todayPulse` | A soft ring pulses once (900ms) at the TODAY line's top the first time a given chart instance renders — not on every redraw/resize/toggle, only once per `build()`. | Inside the render hook's existing TODAY-line block, guarded by `c.miTodayPulsed` (set `true` the first time it fires) so it can't replay on the same chart instance. |
-
-### Renewal-date gamification (v2 — revised after feedback)
-
-Flag: `renewalGoal`. **v1 put this in a separate toolbar chip (`#btnGoal`); feedback was that
-the chip was redundant with the flag already marking the renewal in the key-date lane, and
-that it should stay a key date, visually distinct, with more microinteraction on the marker
-itself.** The chip (CSS, HTML, JS) has been removed entirely. Everything now lives on the
-renewal's own flag, in the key-date lane, where it already was:
-
-- **Larger flag**: still radius 7.5 instead of the ordinary 6 (`markerFor()`), unchanged from v1.
-- **Progress ring** (new): a plain SVG ring drawn around the flag — a faint full "track" circle
-  plus a solid arc on top that sweeps clockwise from 12 o'clock to **% of the current contract
-  term elapsed** (`renewalInfo()`, same calculation as v1's progress bar, just relocated).
-  This is the same visual language as an Apple Watch activity ring or a GitHub
-  contribution/streak ring — a well-worn "goal progress" pattern. `miArcPath()` builds the arc's
-  SVG path.
-- **Soft "ping"** (`.mi-goal-halo`, renamed in spirit from v1's flat halo dot): a small circle
-  that continuously pulses outward and fades, the same visual grammar as a map's "you are here"
-  live-location dot or a notification badge ping — a live/important-location cue sitting
-  *behind* the ring, not a progress indicator itself.
-- **Twinkling star badge** (new, `.mi-goal-star`): a small gold sparkle (reusing the same
-  4-point `SPARK` path already used elsewhere in the UI) positioned at the flag's upper-right,
-  with a slow opacity twinkle. Reads the way a starred calendar event or a game quest-marker
-  reads at a glance — "this one's the goal."
-- **Springier hover pop** (new): the goal flag gets a bigger, bouncier grow on hover
-  (`Highcharts.easing.miSpring`, a classic ease-out-elastic) instead of the ordinary
-  `hoverSpotlight` grow every other marker gets — wired inside `miSpotlight()` itself (checks
-  whether the hovered point is the renewal), not as a separate competing animation.
-- **Native tooltip enrichment** (new): hovering the flag now shows "…planned • 129d to go •
-  72% of term elapsed" right in the existing tooltip — recovering the chip's informational
-  value without a second always-on control.
-
-**Positioning note**: all three drawn pieces (ping, ring, star) are positioned off the
-*actual rendered point* — found by checking each key-date point's bucket contents for the
-renewal moment, not by reading a point's own `mi` field (which only names a cluster's
-dominant item when the renewal is grouped into a "+N"). A bucket-contents search finds the
-right visual marker either way, at its real tier row, even when the lane is crowded enough
-to stack key dates onto more than one row.
-
-### Renewal-date gamification (v3 — second round of feedback)
-
-Four more changes, all still under the `renewalGoal` flag:
-
-1. **"Jump to this month →" removed entirely.** v2 added this link to the renewal's popover
-   (recovering the old chip's click action). Feedback: paging to a single month can hide other
-   events/milestones near the renewal that aren't shown once you've jumped there — a single
-   calendar anchor shouldn't double as a navigation shortcut with that side effect. The link,
-   and its `popGoalJump` click handler, are gone. The popover is now purely informational for
-   the renewal, same as it already is for every other key date.
-
-2. **The edge-of-window "Renewal in N mo" pill is now part of the same visual language**,
-   instead of being left as a plain neutral pill (noted as a "next round" idea in v2, now
-   built). `positionRenewPill()` adds a `mi-goal-pill` class and a small home-base icon
-   (`MI_HOME_ICON`, a new shared SVG constant) in front of the existing "Renewal · in N mo"
-   text. Styling (`.renewpill.mi-goal-pill` + children) is a light purple tint with a small
-   hover scale-bounce — explicitly scoped to `#renewPill` only; `#horizonPill` (the unrelated
-   "earlier milestones" pill that happens to share the base `.renewpill` class) is never
-   touched. This was the "should this be a fun item, like the castle in Mario or home base"
-   ask — landed as a literal home icon rather than a literal castle, since a tiny corner pill
-   has room for an icon, not an illustration; the home-base *idea* (a single, friendly,
-   unmistakable "base" marker) carries over.
-
-3. **The popover's generic "Key dates carry a name and date only" line is replaced for the
-   renewal specifically** with a warmer card (`miGoalCard()`, new `.goalcard` CSS): a home icon,
-   one short message that changes with how close the date is (`miGoalLine()` — "still a way
-   off… building toward" / "coming into view" / "home stretch" / "passed N days ago"), the
-   days-to-go count, the %-of-term-elapsed figure, and a small purple progress bar echoing the
-   flag's own ring. Every *other* key date still gets the original plain line — this is a
-   renewal-only upgrade, not a change to key dates in general. Both the in-lane flag's popover
-   and the edge pill's popover show it, since both call `openDetail()` on the same renewal
-   moment.
-
-4. **Other key dates landing in the renewal's month are *not* duplicated into the pill/card.**
-   Checked the existing data model before deciding: key dates that land close together already
-   get merged into the same `BUCKETS` entry and rendered as a single "+N" marker with its own
-   mini-list popover (`showMiniList()` / `BUCKETS[bkey]`) — that's the mechanism that already
-   surfaces "there's more than one thing here," on the canvas, at the place it actually
-   happened. Repeating that inside the renewal's own pill/card would (a) duplicate information
-   the chart already shows, and (b) turn one single-purpose "go look at the renewal" target
-   into two ambiguous click targets in a small space. Left as-is; flagging back in case the
-   reasoning should be revisited once there's a real multi-key-date-same-month account to look
-   at.
-
-(Item 5 of this round's feedback was left blank — nothing to action; flagged back to confirm
-nothing was meant to go there.)
-
-### In-lane ring removed
-
-Paging forward brings the renewal date on screen, and the progress ring, ping, and star
-were drawn around that flag. The pennant inside the circle read as a lollipop, not a key
-date. Those three overlays and the enlarged flag radius are gone. When the day is in the
-window the renewal is the same pennant as every other key date. The edge pill (home icon)
-and the popover card are unchanged.
-
-The pill itself now sits in the key-date lane, at the right edge of the strip, instead of
-up in the events area. `positionRenewPill()` centres it on that strip and, if a key date's
-flag or label already occupies that stretch, slides the chip left until it clears them.
-
-The chip's mark is a key-date pennant (`MI_FLAG_ICON`), not the home icon. It lives in the
-key-date lane, so it should read as the same flag as the other dates. Lavender fill
-(`#F5F1FC`), `#552A8C` for "Renewal" and the flag, `#A898C7` for "in N mo". No trailing
-arrow. The home icon stays on the popover card only. The chip is 24px tall. The paging
-chevrons (`.edgebtn`, including back and forward) are 28px. Hovering the chip
-flutters the pennant (`.rgp-fly`, `miFlagFlutter`); the pole stays still.
-
-## Earlier-milestones chip
-
-Not gated by an `MI` flag — this is the existing `#horizonPill`, restyled and moved.
-
-- **Look.** White pill, one line (`12 earlier milestones`), and a teal three-diamond mark
-  (`#horizonPill` styles, `HORIZON_MARK`). The mark is three *overlapping* outline diamonds
-  (pale `#AED6D6`, mid `#81BFBF`, front `#4BA3A4`), each shifted right over the one behind
-  it — not three separate outlines in a row. The old second phrase ("events start Mar 2026")
-  is gone from the chip; that explanation stays on the tooltip.
-- **Height.** 28px, same as the paging buttons.
-- **Hover.** `MI.horizonSpread` eases the three diamonds apart (`miHorizonShift`: back diamond
-  left, front diamond right, middle stays). Written as an SVG `transform`, because a CSS
-  transform on these groups is computed but not painted.
-- **Place.** Centred in the milestone lane, inset from the left plot edge so it sits beside
-  the vertical "Milestones" label rather than in the events lane. Merged layout (one shared
-  band) uses that band. If the milestone lane is toggled off, the chip hides.
-- **Where.** CSS `#horizonPill` block after `.renewpill.mi-goal-pill`. JS: `horizonHostLane()`,
-  `positionHorizonPill()`.
-
-## Expanded view fills leftover rows
-
-Fullscreen used to size each lane to the rows its current grouping needed, then give every
-leftover pixel to events. That painted empty rows above the last label while `+N` groups
-were still closed. `fitFullscreenLanes()` now budgets every row that fits at the minimum
-pitch and shares it: events and milestones each take the finest window the pair can afford
-(`fsChooseRows`). A lane that is already showing every date does not keep the spare rows.
-
-## Final layout: one lane, fixed height
-
-Rebuilt to the "final" spec. Events and milestones share one lane (`LAYOUT` is fixed to
-`'merged'`; the Layout picker is gone from the rig bar). The compact widget is one height
-for every account (`FIXED_HEIGHT`, at `ROWS_MAX` rows), so it no longer resizes with the
-scenario. Key dates keep their own strip above the health bars. The legend's "Lanes" line
-is now "Shapes". Every microinteraction above still applies.
-
-## Health tooltip hover matches the bar
-
-The invisible hit used to be the whole strip, plus 4px up into the plot, so the readout
-opened after the pointer had moved on to a marker. The hit is now the drawn bar plus 2px,
-and it closes when a marker takes hover or the pointer moves anywhere else. A redraw
-destroys the bar without a mouseout, so a later move that is not still on a bar closes it.
-
-## Health tooltip clears the key-date card
-
-A key date flag sits on the health bars, so the health readout (just above the pointer)
-was landing on the flag's own tooltip. `placeHealthTip()` moves it above that card, or
-below it, or to the side, whichever is clear. The same placement is in the main prototype.
-
-## Hover passes (health, key date)
-
-- **Health bars** (`MI.healthHover`). The bar under the pointer stays at full colour; the other
-  readings in the strip fade to 28% opacity. Wired on the existing transparent hit rects in
-  the render hook (`miHealthFocus` / `miHealthClear`), so the tooltip still opens.
-- **Single key date** (`MI.flagWiggle`). The pennant sways once (`.mi-wiggle`, about half a
-  second) and stops. Grouped "+N" flags are skipped — those open the list. The ripple
-  (`flagWave`) still plays alongside it.
-
-Item 5 of the latest request was left blank.
-
-## Known limitation
-
-`build()` fully destroys and recreates the Highcharts chart on every data/layout/filter
-change (this was true before this lab, not something introduced here). That means lane
-transitions can't be a true per-marker morph between the old and new layout — `miTransitionBuild()`
-disguises the destroy/recreate as a cross-fade rather than actually animating markers from
-their old position to their new one. Good enough to remove the "jump", not a real morph.
+The earlier lab's own renewal chip (lavender pennant pill, goal card, progress copy) is gone;
+the final build's renewal chip is used instead. Its flag wiggle, flag ripple, TODAY ring,
+group spring and popover rise are gone because the final build already covers each of them.

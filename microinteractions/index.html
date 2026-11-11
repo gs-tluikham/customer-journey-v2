@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Customer Journey — microinteractions lab</title>
+<title>Customer Journey — final (microinteractions lab)</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600&display=swap');
 :root{--royal-blue:#0369E9;--rg90:#181F26;--rg70:#3C4A57;--rg60:#5F6C7A;--rg40:#D5D9DE;--rg30:#E6E9EC;--rg20:#F5F7F9;
@@ -12,32 +12,11 @@
 body{font-family:'Noto Sans',sans-serif;background:#EBEEF2;color:var(--rg90);padding:28px;-webkit-font-smoothing:antialiased;}
 /* Deliberately styled unlike the widget so it can't be mistaken for a product control. */
 .rig{max-width:1600px;margin:0 auto 14px;display:flex;align-items:center;gap:14px;
-padding:9px 14px;border:1px dashed #B9A6C9;border-radius:8px;background:#F7F3FA;min-width:0;}
-.riglabel{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7A5E93;
-flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.rigfield{display:flex;align-items:center;gap:8px;font-size:12px;color:#5B4A6B;
-flex:0 0 auto;min-width:0;white-space:nowrap;}
-/* A select sizes to its longest option and never shrinks on its own. min-width:0 on both the
-   field and the select lets the row give width back; the floor keeps a few words visible. */
-.rigfield.fit{flex:0 1 auto;}
-.rigsel{height:28px;border:1px solid #C9B8D6;border-radius:6px;color:var(--rg90);
-font-family:inherit;font-size:13px;padding:0 28px 0 8px;cursor:pointer;
-flex:1 1 auto;min-width:120px;max-width:100%;width:auto;
-overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-appearance:none;-webkit-appearance:none;background-color:#fff;
-background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%235B4A6B' stroke-width='1.5'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
-background-repeat:no-repeat;background-position:right 8px center;background-size:14px;}
-.rigsel:hover{border-color:#A88BBE;}
-.rigsel:focus-visible{outline:2px solid #7A5E93;outline-offset:1px;}
-@media (max-width:820px){
-  .rig{flex-wrap:wrap;row-gap:8px;}
-  .riglabel{flex:1 0 100%;}
-  .rigfield{margin-left:0 !important;}
-  .rigfield.fit{flex:1 1 0;}
-}
-@media (max-width:560px){
-  .rigfield,.rigfield.fit{flex:1 0 100%;}
-}
+padding:9px 14px;border:1px dashed #B9A6C9;border-radius:8px;background:#F7F3FA;}
+.riglabel{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7A5E93;}
+.rigfield{display:flex;align-items:center;gap:8px;font-size:12px;color:#5B4A6B;}
+.rigsel{height:28px;border:1px solid #C9B8D6;border-radius:6px;background:#fff;color:var(--rg90);
+font-family:inherit;font-size:13px;padding:0 8px;cursor:pointer;}
 .wrap{max-width:1600px;margin:0 auto;background:#fff;border:1px solid var(--rg30);border-radius:16px;padding:20px 24px 16px;box-shadow:0 2px 4px rgba(52,56,58,.06);position:relative;}
 .top{display:flex;align-items:center;gap:4px;margin-bottom:6px;position:relative;}
 h1{font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--rg70);}
@@ -62,50 +41,67 @@ h1{font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--rg70);}
 .iconbtn2:active{background:var(--rg40);color:var(--rg90);}
 .iconbtn2:focus-visible{outline:2px solid var(--royal-blue);outline-offset:1px;}
 .iconbtn2 svg{width:16px;height:16px;}
+/* a filter is in force: small dot on the gear, so a hidden Risk group is never a mystery */
+#btnCfg{position:relative;}
+#btnCfg.filtered::after{content:"";position:absolute;top:4px;right:4px;width:7px;height:7px;
+  border-radius:50%;background:var(--royal-blue);box-shadow:0 0 0 2px #fff;animation:cjPop .28s ease-out;}
 .renewpill{position:absolute;z-index:45;display:none;align-items:center;gap:5px;background:#fff;border:1px solid var(--rg30);
-border-radius:40px;padding:3px 10px;box-shadow:0 1px 3px rgba(52,56,58,.10);font-size:11px;font-family:inherit;cursor:pointer;white-space:nowrap;}
+border-radius:40px;padding:3px 10px;box-shadow:0 1px 3px rgba(52,56,58,.10);font-size:11px;font-family:inherit;cursor:pointer;white-space:nowrap;
+transition:background .15s,border-color .15s,box-shadow .15s,transform .15s;}
 .renewpill:hover{background:var(--rg20);border-color:var(--rg40);}
 .renewpill .rl{font-weight:600;color:var(--rg70);}
 .renewpill .rd{color:var(--rg60);}
-/* MI: renewalGoal — only ever applied to #renewPill (never #horizonPill, which shares the
-   base .renewpill look but is an unrelated "earlier milestones" affordance). A key-date
-   pennant, not a home icon: the chip lives in the key-date lane, so it should read as the
-   same mark as the other flags. No trailing arrow. */
-.renewpill.mi-goal-pill{height:24px;gap:6px;padding:0 10px 0 8px;background:#F5F1FC;border-color:#D9CCF1;
-  box-shadow:0 1px 2px rgba(85,42,140,.06);font-size:13px;line-height:1;
-  transition:background .12s, border-color .12s;}
-.renewpill.mi-goal-pill:hover{background:#EFE6FA;border-color:#CDBBE8;}
-.renewpill.mi-goal-pill .rl{font-weight:600;color:#552A8C;}
-.renewpill.mi-goal-pill .rd{font-weight:400;color:#A898C7;}
-.renewpill.mi-goal-pill .rgp-icon{width:11px;height:13px;flex:none;color:#552A8C;display:flex;overflow:visible;}
-.renewpill.mi-goal-pill .rgp-icon svg{width:100%;height:100%;display:block;fill:currentColor;stroke:none;overflow:visible;}
-/* MI: renewalGoal — the pennant flutters on the pole while the chip is hovered. The pole stays
-   still; only the fly rotates about its hoist. */
-.renewpill.mi-goal-pill .rgp-fly{transform-box:fill-box;transform-origin:0% 50%;}
-.renewpill.mi-goal-pill:hover .rgp-fly{animation:miFlagFlutter .6s ease-in-out infinite;}
-@keyframes miFlagFlutter{
-  0%,100%{transform:rotate(0deg) scaleX(1);}
-  35%{transform:rotate(-16deg) scaleX(.9);}
-  70%{transform:rotate(11deg) scaleX(1.06);}
-}
-/* Earlier-milestones chip. Scoped to #horizonPill so the renewal pill, which shares
-   .renewpill, keeps its own treatment. White pill, one line of text, teal three-diamond mark. */
-#horizonPill{height:28px;gap:8px;padding:0 14px 0 11px;font-size:13px;line-height:1;color:#3F4A56;
-  border-color:#E4E7EB;box-shadow:0 1px 2px rgba(52,56,58,.05),0 3px 10px rgba(52,56,58,.10);}
-#horizonPill:hover{background:#F7FBFA;border-color:#D5D9DE;}
-#horizonPill .rl{font-weight:500;color:#3F4A56;}
-#horizonPill .hp-ico{width:22px;height:14px;flex:none;display:flex;overflow:visible;}
-#horizonPill .hp-ico svg{width:100%;height:100%;display:block;overflow:visible;}
-/* MI: horizonSpread — the spread itself is an SVG transform (see miHorizonShift).
-   A CSS transform on these groups is computed but not painted, so it cannot do the job. */
-/* MI: flagWiggle — one sway, then rest. Pivots on the hoist (the left edge of the pennant). */
-.mi-wiggle{transform-box:fill-box;transform-origin:0% 55%;animation:miWiggle .48s ease-in-out 1;}
-@keyframes miWiggle{
-  0%{transform:rotate(0deg);}
-  22%{transform:rotate(-11deg);}
-  48%{transform:rotate(8deg);}
-  72%{transform:rotate(-4deg);}
-  100%{transform:rotate(0deg);}
+/* ---- renewal, as an off-screen KEY DATE ----
+   It sits on the key-date strip at the right edge, in the key-date purple, with a flag: the
+   renewal is a key date, so its "beyond the window" marker lives in the key-date lane rather
+   than floating in the gap between event and milestone lanes. */
+#renewPill{background:#F6F1FD;border-color:#DCCBF4;color:#552A8C;padding:0 9px 0 7px;height:24px;}
+#renewPill:hover{background:#EEE4FB;border-color:#C9B2EC;box-shadow:0 3px 10px rgba(85,42,140,.16);transform:translateY(-1px);}
+#renewPill .rl{color:#552A8C;}
+#renewPill .rd{color:#7B5BA8;}
+#renewPill .rflag{width:11px;height:13px;flex:none;}
+#renewPill .rflag .pn{transform-box:fill-box;transform-origin:left center;}
+#renewPill:hover .rflag .pn{animation:cjWave .7s ease-in-out;}
+#renewPill .ar{display:inline-block;transition:transform .2s ease;color:#7B5BA8;}
+#renewPill:hover .ar{transform:translateX(3px);}
+/* ---- earlier milestones: a little stack of diamonds that fans out on hover ---- */
+#horizonPill{height:28px;padding:0 12px 0 10px;font-size:12.5px;line-height:1;}
+#horizonPill .dstack{position:relative;width:20px;height:12px;flex:none;}
+#horizonPill .dstack i{position:absolute;top:2px;width:7px;height:7px;border:1.6px solid #0EA5A5;
+  background:#fff;transform:rotate(45deg);transition:left .2s ease,opacity .2s;}
+#horizonPill .dstack i:nth-child(1){left:2px;opacity:.45;}
+#horizonPill .dstack i:nth-child(2){left:5px;opacity:.7;}
+#horizonPill .dstack i:nth-child(3){left:8px;}
+#horizonPill:hover .dstack i:nth-child(1){left:0;opacity:.6;}
+#horizonPill:hover .dstack i:nth-child(2){left:5px;opacity:.85;}
+#horizonPill:hover .dstack i:nth-child(3){left:10px;}
+#horizonPill:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(52,56,58,.14);}
+/* ---- micro-interactions ---- */
+@keyframes cjWave{0%{transform:skewY(0) scaleX(1)}25%{transform:skewY(-9deg) scaleX(.9)}
+  55%{transform:skewY(6deg) scaleX(1.05)}80%{transform:skewY(-2deg)}100%{transform:skewY(0) scaleX(1)}}
+@keyframes cjIn{from{opacity:0;transform:translateY(4px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes cjPop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes cjDip{0%{transform:scale(1)}40%{transform:scale(.7)}100%{transform:scale(1)}}
+@keyframes cjPulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(3.2);opacity:0}}
+/* key-date flag waves on its pole when hovered */
+.kd-flag{transform-box:fill-box;transform-origin:left center;}
+.kd-flag:hover{animation:cjWave .7s ease-in-out;}
+/* popovers and lists arrive rather than appear */
+.pop,.mlist.show,.mshist.show,.keypop.show{animation:cjIn .16s ease-out;transform-origin:top left;}
+/* legend toggles: the glyph pops on, dips off */
+.tchip svg{transition:opacity .15s;}
+.tchip[aria-pressed="true"] svg{animation:cjPop .28s ease-out;}
+.tchip[aria-pressed="false"] svg{animation:cjDip .28s ease-out;}
+/* paging chevrons nudge the way they go */
+.edgebtn .cv{transition:transform .18s ease;}
+#pastBtn:hover .cv{transform:translateX(-2px);}
+#fwdBtn:hover .cv{transform:translateX(2px);}
+/* today: a soft heartbeat at the top of the line */
+.today-pulse{transform-box:fill-box;transform-origin:center;animation:cjPulse 2.2s ease-out infinite;}
+/* health bars fade, not resize, when a neighbour is hovered */
+.hbar{transition:opacity .12s ease;}
+@media (prefers-reduced-motion: reduce){
+  .wrap *,.wrap *::before,.wrap *::after{animation:none!important;transition:none!important;}
 }
 /* ---- hover tooltip ----
    Title is REGULAR weight — the size and the near-black colour already separate it from the
@@ -183,6 +179,11 @@ box-shadow:0 6px 20px rgba(52,56,58,.18);padding:6px;max-height:214px;overflow-y
 .mrow2 .nm{font-size:13px;color:var(--rg90);}
 .mrow2 .dt{font-size:12.5px;color:var(--rg60);margin-left:auto;padding-left:14px;}
 .mlhd{font-size:12px;color:var(--rg60);padding:5px 9px 4px;}
+/* renewal countdown in the key-date popover */
+.rnbox{margin-top:12px;padding:12px 14px;border-radius:10px;background:#F6F1FD;border:1px solid #E6DAF7;}
+.rnd{font-size:14px;color:#552A8C;}
+.rnd b{font-size:24px;font-weight:600;margin-right:3px;font-variant-numeric:tabular-nums;}
+.rns{font-size:12px;color:#7B5BA8;margin-top:1px;}
 .mrow2.static{cursor:default;}
 .mrow2.static:hover{background:none;}
 /* ---- toolbar tooltip ----
@@ -269,32 +270,15 @@ box-shadow:0 4px 12px rgba(52,56,58,.16);padding:6px 10px;font-size:12px;color:v
 .ovsep{height:1px;background:var(--rg30);margin:5px 4px;}
 
 /* =====================================================================================
-   MICROINTERACTIONS LAB — added styles. Everything in this block is new; delete the whole
-   block (and its JS counterpart tagged "MI:" near the top of the script) to remove every
-   effect at once. See NOTES.md next to this file for what each class does and where it's
-   wired. Individual effects can also be switched off one at a time via the MI config
-   object in the script, without touching this CSS. */
-/* v2 — see miTransitionBuild(). A clone of the chart's last rendered frame sits on top as a
-   static, click-through overlay while the real chart rebuilds underneath (instant, but hidden
-   under the clone); the clone then fades away to reveal the finished new chart. There is never
-   a blank frame, which is what the old fade-out/fade-in-#chart-itself version read as a cut. */
+   MICROINTERACTIONS LAB — added styles. Paired with the "MI:" block in the script; see
+   NOTES.md. Each effect can be switched off from the MI flags without touching this CSS. */
+/* MI: laneTransition — the outgoing frame fades over the rebuilt chart. */
 .mi-lane-snap{position:absolute;pointer-events:none;z-index:50;
   opacity:1;transition:opacity .34s ease, transform .34s ease;}
 .mi-lane-snap.mi-fade-out{opacity:0; transform:scale(1.015);}
-
-.mlist.mi-spring{animation:miSpring .28s cubic-bezier(.34,1.56,.64,1);}
-@keyframes miSpring{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}
-
-.pop.mi-rise{animation:miFadeRise .18s ease-out;}
-@keyframes miFadeRise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-
+/* MI: drawerFade — the drawer already slides; the backdrop now fades with it. */
 .edmask.mi-fade{opacity:0;transition:opacity .18s ease;}
 .edmask.mi-fade.show{opacity:1;}
-
-/* The in-lane renewal ring, ping, and star were removed. Paging the renewal into view
-   drew a circle around the pennant, so the key date read as a lollipop instead of a flag.
-   The renewal is an ordinary key-date flag when its day is on screen. The edge pill and
-   the popover card still carry the goal treatment. */
 /* ===================================================================================== */
 
 
@@ -419,6 +403,12 @@ background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.
 .mrow .sub{color:var(--rg60);font-size:12px;}
 .mchk{width:17px;height:17px;accent-color:var(--royal-blue);cursor:pointer;margin:0;flex:none;}
 .mempty{font-size:13px;color:var(--rg60);padding:16px 2px;}
+.mgrp{display:flex;align-items:center;gap:11px;padding:12px 2px 6px;cursor:pointer;}
+.mgrp .gt{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--rg70);}
+.mgrp .gc{margin-left:auto;font-size:11px;font-weight:600;color:var(--rg60);}
+.mgrpbody{padding-left:28px;border-bottom:1px solid var(--rg30);padding-bottom:6px;}
+.mgrpbody:last-child{border-bottom:0;}
+.cfgdot{width:9px;height:9px;border-radius:50%;flex:none;}
 .mft{padding:14px 24px;border-top:1px solid var(--rg30);display:flex;justify-content:flex-end;gap:10px;}
 .btn2{height:36px;padding:0 20px;border-radius:100px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;border:1px solid var(--rg40);background:#fff;color:var(--royal-blue);}
 .btn2:hover{background:var(--rg20);}
@@ -475,22 +465,6 @@ box-shadow:0 8px 24px rgba(52,56,58,.18),0 2px 6px rgba(52,56,58,.10);padding:15
 .pop .cmt input{width:100%;height:36px;border:1px solid var(--rg40);border-radius:8px;padding:0 12px;font-size:13px;font-family:inherit;color:var(--rg90);}
 .pop .cmt input::placeholder{color:var(--rg50);}
 .pop .cmt input:focus{outline:none;border-color:var(--royal-blue);}
-/* MI: renewalGoal — the warm/visual replacement for the generic "Key dates carry a name and
-   date only" line, shown only in the renewal's own popover. Same purple tokens as the
-   restyled pill and the in-lane ring/star, so the pill, the flag and this card read as one
-   idea rather than three unrelated treatments. */
-.goalcard{display:flex;gap:11px;margin-top:12px;padding:12px 13px;background:#FBF8FD;
-  border:1px solid #ECDFF4;border-radius:12px;}
-.goalcard-icon{width:30px;height:30px;flex:none;border-radius:50%;background:#F3E9F8;
-  color:#552A8C;display:flex;align-items:center;justify-content:center;}
-.goalcard-icon svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.8;fill:none;}
-.goalcard-body{flex:1;min-width:0;}
-.goalcard-msg{font-size:13px;color:var(--rg90);line-height:1.45;}
-.goalcard-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;font-size:11.5px;}
-.goalcard-days{font-weight:600;color:#552A8C;}
-.goalcard-pct{color:var(--rg60);}
-.goalcard-bar{height:5px;border-radius:3px;background:#E9DCF2;margin-top:6px;overflow:hidden;}
-.goalcard-fill{height:100%;border-radius:3px;background:#7A4FB0;transition:width .3s ease;}
 .row{display:flex;gap:10px;align-items:flex-start;padding:9px 6px;border-radius:8px;cursor:pointer;}
 .row:hover{background:var(--rg20);}
 .row .dot{width:12px;height:12px;flex:none;margin-top:3px;display:flex;align-items:center;justify-content:center;}
@@ -504,8 +478,8 @@ box-shadow:0 8px 24px rgba(52,56,58,.18),0 2px 6px rgba(52,56,58,.10);padding:15
 border:none;background:none;padding:0;font-family:inherit;cursor:pointer;}
 .slink:hover{text-decoration:underline;}
 .divide{height:1px;background:var(--rg30);margin:2px 0 14px;}
-.edgebtn{position:absolute;z-index:40;display:none;align-items:center;gap:6px;height:28px;background:#fff;color:#5F6C7A;border:1px solid #D5D9DE;
-border-radius:40px;padding:0 11px 0 9px;cursor:pointer;box-shadow:0 2px 6px rgba(52,56,58,.12);font-size:12.5px;font-family:inherit;line-height:1;}
+.edgebtn{position:absolute;z-index:40;display:none;align-items:center;gap:6px;background:#fff;color:#5F6C7A;border:1px solid #D5D9DE;
+border-radius:40px;height:28px;padding:0 11px 0 9px;cursor:pointer;box-shadow:0 2px 6px rgba(52,56,58,.12);font-size:12.5px;font-family:inherit;}
 .edgebtn:hover{background:#F5F7F9;}
 .edgebtn .cv{font-size:17px;line-height:1;margin-top:-1px;color:#5F6C7A;}
 .edgebtn .n{background:#F5F7F9;color:#5F6C7A;border-radius:40px;font-size:11px;font-weight:600;padding:1px 7px;}
@@ -542,11 +516,17 @@ border-radius:40px;padding:0 11px 0 9px;cursor:pointer;box-shadow:0 2px 6px rgba
 </head>
 <body>
 <div class="rig">
-  <span class="riglabel" title="Prototype rig — final: one lane, fixed height, key-date strip">Prototype rig — final: one lane, fixed height, key-date strip</span>
+  <span class="riglabel" title="Prototype rig — final: one lane, fixed height, key-date strip. Microinteractions lab.">Prototype rig — final: one lane, fixed height, key-date strip</span>
   <label class="rigfield" style="margin-left:auto;">
     <input type="checkbox" id="dbgRegions"> Layout regions
   </label>
-  <label class="rigfield fit" style="margin-left:14px;">Scenario
+  <label class="rigfield" style="margin-left:14px;">Customer
+    <select id="custSel" class="rigsel" title="Tenant type">
+      <option value="joint">Joint (Staircase + CS)</option>
+      <option value="cs">CS only</option>
+    </select>
+  </label>
+  <label class="rigfield" style="margin-left:14px;">Scenario
     <select id="scenSel" class="rigsel" title="Stress-test scenario"></select>
   </label>
 </div>
@@ -580,8 +560,7 @@ border-radius:40px;padding:0 11px 0 9px;cursor:pointer;box-shadow:0 2px 6px rgba
     <div class="keypop" id="keyPop" role="dialog" aria-label="Reading this timeline">
       <div class="keyhd">Reading this timeline</div>
       <div class="keydef"><b>+N</b> Most recent of a group. Hover the count to see the rest.</div>
-      <!-- Lanes split by kind, not by who created the item. A hollow dot is the only cue that
-           an event was entered by a CSM rather than detected. -->
+      <!-- v2: the one encoding rule that is not decodable from the toolbar. Fill = source. -->
       <div class="keydef"><b>Shapes</b> Dots are events, diamonds are milestones, sharing one lane. A group shows its latest item; hover the +N for the rest. Bottom strip: key dates.</div>
       <!-- The "Rows" line was CUT. Row position was flagged for validation, not for a fix, and
            this popover was only ever the cheaper remedy IF validation showed readers inferring an
@@ -630,10 +609,6 @@ border-radius:40px;padding:0 11px 0 9px;cursor:pointer;box-shadow:0 2px 6px rgba
            so the filter's effect cannot be read off the chart — only from the tooltip and
            popover text. -->
       <!-- <select id="sentSel" class="sel" title="Filter events by sentiment"><option value="all">All sentiment</option><option value="risk">Negative</option><option value="watch">Neutral</option><option value="pos">Positive</option></select> -->
-      <!-- MI: renewalGoal — v1 put the renewal's countdown/progress in a toolbar chip here.
-           Removed as redundant with the flag that already marks it in the key-date lane; the
-           same info now lives on the flag itself (progress ring, star badge) and in its own
-           tooltip/popover. See the render hook and markerFor() for what replaced this. -->
       <button class="iconbtn2" id="btnCfg" title="Configure" aria-label="Configure Customer Journey"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       <!-- One action, no menu. CSV and XLS were dropped: the widget's value is the shape of
            the timeline, and a spreadsheet of the same rows is Timeline's job, not this one.
@@ -683,7 +658,7 @@ border-radius:40px;padding:0 11px 0 9px;cursor:pointer;box-shadow:0 2px 6px rgba
   <div class="drawer" id="cfgModal" role="dialog" aria-modal="true" aria-labelledby="cfgTitle" tabindex="-1">
     <div class="mhd">
       <h2 id="cfgTitle">Configure Customer Journey</h2>
-      <p>Select which milestones and key dates appear on the timeline. Lifecycle events come from your Staircase configuration.</p>
+      <p id="cfgSub">Choose which events, milestones and key dates appear on this timeline.</p>
       <button class="mx" id="cfgX" aria-label="Close">×</button>
     </div>
     <div class="mbody">
@@ -727,63 +702,88 @@ window.addEventListener('error',function(e){
 <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/modules/accessibility.js"></script>
 <script>
 /* =====================================================================================
-   WHY THE LANES ARE SPLIT: EVENTS vs MILESTONES
-   A source split (recorded above, AI-detected below) put the planned check-in with
-   milestones because a CSM typed it. That is the wrong cut. Milestones can be automatic
-   too — a rule an admin set up — so "who entered it" does not tell events from milestones.
+   FINAL, REVISED (decision after review):
+     - ONE LANE. The widget's height cannot change per account inside C360 without disturbing
+       the widgets around it, and the two-lane case rested on an adaptive milestone lane. So:
+       events and milestones share one lane at a FIXED height, and cluster together as one
+       type. A group shows its LATEST item up front; the rest sit behind its +N.
+     - FIXED ROWS by customer type, decided per tenant, never per account: joint customers
+       (Staircase + CS) get ROWS_JOINT, CS-only customers ROWS_CS. A tenant is one or the other,
+       so every C360 in a tenant has the same widget height.
+     - Configure lists event TYPES with their colours, no sentiment groups: Staircase does not
+       classify types by sentiment, so the widget would be inventing it.
+     - Key dates keep their own strip; its space is reserved even when hidden, for the same
+       fixed-height reason.
+   EARLIER (two-lane review, superseded):
+     - Two lanes stay. Customers liked them, mostly because each type can be toggled.
+     - Milestones on TOP, events BELOW (Brady): the dense events lane sits on the key-date strip
+       and health bars, where sentiment is read against health; the sparse lane sits on top.
+     - The milestone lane is ADAPTIVE (Chirag): as tall as the rows its milestones need, up to
+       MS_ROWS_MAX. An org with one milestone gets one thin row; an account with no milestones at
+       all gets no milestone lane, so events use the whole area — the one-lane geometry, without
+       losing the distinction for accounts that do have milestones. Measured: this was Brady's
+       waste case, a 64px lane with 1 of 3 rows used.
+     - Events can be filtered by TYPE in Configure, grouped Risk / Positive / Neutral, because at
+       volume no layout helps: an 18-event month hid ~19 items in either layout.
+   REVISED: the lanes are split by TYPE again — events vs milestones — not by AI vs recorded.
+   AI vs recorded did not hold: automatic milestones are system-generated too and the user can
+   no more edit them than an AI event. So: events lane = Staircase lifecycle events plus
+   CSM-added events; milestones lane = Gainsight Timeline milestones, automatic or manual;
+   key dates on their own strip. The notes below are kept as history of the AI framing.
+   v2 — WHY THE LANES ARE SPLIT, AND WHAT GOES WHERE
+   Feedback (via Chirag): (1) key dates should be distinct from the geometric icons, possibly
+   a flag; (2) it is not obvious why CS milestones and Staircase events are physically
+   separated; (3) "can we make it look like those are AI events?"
 
-     TOP LANE     EVENTS. Detected from emails and calls, or entered by a CSM (planned
-                  check-in and other manual events). The Events toggle owns all of them.
-     LOWER LANE   MILESTONES. Automatic or manual. A manual milestone stays a diamond here;
-                  it is not an event.
-     STRIP        KEY DATES.
+   The old split was justified by LAYOUT ("we couldn't align everything visually"). That is an
+   implementation reason, and a reader cannot see it, so the separation looked arbitrary.
+   v2 re-founds the split on SOURCE, which a reader can use:
 
-   ENCODING inside the events lane, not instead of the lane split:
-     solid fill   = detected event, coloured by its configured event type
-     hollow ring  = CSM-entered event (planned check-in)
-     diamond      = milestone
-     flag         = key date
+     ABOVE the line  RECORDED in Gainsight — a rule an admin set up (automatic milestones),
+                     or something a person entered (manual milestones, key dates, CSM events).
+                     These are facts. Someone controls them and can correct them.
+     BELOW the line  DETECTED by Staircase AI from emails and calls. These are inferences:
+                     confident, useful, but a model's reading of the conversation.
+
+   The split answers "how much should I trust this, and who do I talk to if it's wrong" —
+   which is the question a CSM actually has before acting on a red dot.
+
+   Consequence worth flagging: MANUAL EVENTS MOVE UP. A CSM-entered check-in was sitting in
+   the events lane because it is "an event", but it is human-recorded, so by this rule it is
+   above the line. Configure already filed it under Manual Milestones, so this makes the canvas
+   agree with Configure. It now follows the Milestones toggle.
+
+   ENCODING, reinforcing the line rather than relying on it:
+     solid fill    = AI-detected (events, coloured by admin-configured event type)
+     outline       = recorded (milestones: diamond; manual events: ring)
+     flag          = key date — a point someone planted on the calendar. A flag is the only
+                     non-geometric mark, so it cannot be confused with a data point, and it is
+                     the glyph the current widget already uses.
+   Plus: a faint AI tint on the lower lane, captions on the divider, and an "AI-detected" chip
+   in tooltip / popover / drawer. Markers keep their event-type colour — the purple accent is
+   for SOURCE only and never colours a marker.
+
+   The rig's Layout switch renders the one-lane alternative so the trade can be judged on
+   screen: one lane removes the divider question but leaves fill as the ONLY cue for AI vs
+   recorded, and puts sparse milestones back in competition with dense events for rows.
    ===================================================================================== */
-/* Final build: events and milestones share one lane. The split code paths stay in place
-   but are never reached; 'merged' is the only layout this page offers. */
-const LAYOUT='merged';
-
+let LAYOUT='merged';   // final: one lane. 'split' is kept only to reproduce the comparison
 /* =====================================================================================
-   MICROINTERACTIONS LAB — everything below tagged "MI:" is new, additive, and reversible.
-   - To turn an effect off: set its flag here to false. No other edit needed.
-   - To remove an effect for good: search this file for its flag name in a "MI:" comment
-     and delete those blocks, plus the matching CSS in the "MICROINTERACTIONS LAB" style
-     block near the top of <style>.
-   - To remove everything at once: set MI_ENABLED to false, or delete this whole block,
-     the CSS block, and every block tagged "MI:".
-   See NOTES.md next to this file for the full list with locations.
+   MICROINTERACTIONS LAB — added on top of the final build. Everything tagged "MI:" is
+   additive and reversible: set a flag to false to switch one effect off, or MI_ENABLED to
+   false for all of them. The final build already has its own flag wave, TODAY pulse,
+   diamond fan-out, renewal-chip wave, popover rise and health-bar dimming; those are
+   left as they are.
+   See NOTES.md next to this file.
    ===================================================================================== */
-const MI_ENABLED = true;   // master switch — false disables every effect below
+const MI_ENABLED = true;
 const MI = {
-  hoverSpotlight: MI_ENABLED && true,  // marker grows on hover; rest of its own lane fades
-  laneTransition: MI_ENABLED && true,  // lane/layout toggle cross-fades instead of jumping
-  pageGlide:      MI_ENABLED && true,  // markers glide (not snap) when paging/zoom re-buckets
-  groupSpring:    MI_ENABLED && true,  // the "+N" list springs open
-  popoverRise:    MI_ENABLED && true,  // popover fades and rises in
-  drawerFade:     MI_ENABLED && true,  // drawer backdrop fades in
-  flagWave:       MI_ENABLED && true,  // key-date flags ripple on hover and on first view
-  flagWiggle:     MI_ENABLED && true,  // a single key date wiggles once on hover, then stops
-  healthHover:    MI_ENABLED && true,  // hovered health bar stays bright; the others dim
-  horizonSpread:  MI_ENABLED && true,  // earlier-milestones diamonds ease apart on hover
-  todayPulse:     MI_ENABLED && true,  // TODAY line pulses once when a chart is first built
-  renewalGoal:    MI_ENABLED && true   // renewal chip: pennant, flutter, popover card
+  hoverSpotlight: MI_ENABLED && true,  // marker grows on hover; the rest of its lane fades
+  laneTransition: MI_ENABLED && true,  // toggles, customer and scenario cross-fade instead of jumping
+  pageGlide:      MI_ENABLED && true,  // markers glide (not snap) when paging re-buckets
+  drawerFade:     MI_ENABLED && true   // event drawer backdrop fades in
 };
-/* MI: renewalGoal — a reusable "pop" easing for the goal flag's extra-springy hover bounce
-   (classic ease-out-elastic). Registered once, globally, like Highcharts' own named easings.
-   Highcharts.easing isn't guaranteed to exist as an object before anything is assigned to it
-   in this build, hence the defensive `||{}` rather than assuming it's pre-populated. */
-Highcharts.easing = Highcharts.easing || {};
-Highcharts.easing.miSpring=function(pos){
-  return 1 + (-Math.pow(2,-10*pos)) * Math.cos((pos*10-0.75)*((2*Math.PI)/3));
-};
-/* MI: hoverSpotlight — grow the hovered marker, dim its own lane's other markers. The goal
-   flag (MI: renewalGoal) gets a springier, bigger pop instead of the ordinary grow, so it reads
-   as a more playful "that's the goal" moment rather than the same treatment as everything else. */
+/* MI: hoverSpotlight — grow the hovered marker, dim its own lane's other markers. */
 function miSpotlight(point){
   const series=point&&point.series;
   if(!series||!isLaneSeries(series)) return;
@@ -794,14 +794,12 @@ function miSpotlight(point){
     const labels=p.dataLabels||(p.dataLabel?[p.dataLabel]:[]);
     labels.forEach(l=>{ if(l) try{ l.animate({opacity:mine?1:.3},{duration:140}); }catch(e){} });
   });
+  /* Key dates are flags with their marker swell switched off in the final build; they
+     only take the fade. */
+  if(series.name==='Key dates') return;
   try{
     const baseR=(point.options.marker&&point.options.marker.radius)||5;
-    const mm=MOMENTS[(point.options||{}).mi];
-    if(MI.renewalGoal && mm && mm.renewal){
-      point.graphic.animate({r:baseR+3.5},{duration:420,easing:'miSpring'});
-    } else {
-      point.graphic.animate({r:baseR+2.5},{duration:140});
-    }
+    point.graphic.animate({r:baseR+2.5},{duration:140});
     point._miGrownR=baseR;
   }catch(e){}
 }
@@ -819,14 +817,10 @@ function miClearSpotlight(point){
     }
   });
 }
-/* MI: laneTransition (v2) — a genuine two-layer cross-fade, not fade-to-blank-then-fade-in.
-   v1 faded #chart itself out, rebuilt it while invisible, then faded it back in — the blank
-   gap in between is exactly what read as a cut rather than a cross-fade. This version clones
-   the chart's current rendered frame into a static, click-through overlay, rebuilds the real
-   chart underneath it (instant, but hidden under the clone), then fades the clone away to
-   reveal the already-finished new chart. New content is on screen the whole time: old simply
-   dissolves into it. Not a true per-marker morph between layouts (build() still destroys and
-   recreates the chart underneath) — but there is no blank frame, which is what was missing. */
+/* MI: laneTransition — a two-layer cross-fade. A static, click-through clone of the last
+   frame sits on top while the real chart rebuilds underneath, then the clone fades away,
+   so there is never a blank frame. build() still destroys and recreates the chart; this
+   hides the cut rather than morphing markers. */
 function miTransitionBuild(){
   if(!MI.laneTransition){ build(); return; }
   const el=document.getElementById('chart');
@@ -835,16 +829,12 @@ function miTransitionBuild(){
   try{
     if(parent && getComputedStyle(parent).position==='static') parent.style.position='relative';
     snap=el.cloneNode(true);
-    /* The clone carries a second copy of every id in the live chart — Highcharts' own
-       clip-path/gradient ids included. Two elements sharing one id is invalid, and some
-       browsers resolve url(#id) references against the wrong copy. The snapshot is purely
-       decorative and lives for ~350ms, so stripping ids outright (rather than rewriting every
-       url(#...) reference to a renamed id) is the simpler, low-risk trade. */
+    /* The clone would duplicate every id in the live chart, including Highcharts'
+       clip-path and gradient ids; it lives for ~350ms, so the ids are simply stripped. */
     snap.removeAttribute('id');
     snap.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
     snap.className='mi-lane-snap';
-    // Positioned as a SIBLING of #chart, not a child: build() clears #chart's own innerHTML
-    // to rebuild it, which would destroy the snapshot on the spot if it lived inside #chart.
+    /* A sibling of #chart, not a child: build() clears #chart, which would take the clone with it. */
     snap.style.left=el.offsetLeft+'px';
     snap.style.top=el.offsetTop+'px';
     snap.style.width=el.offsetWidth+'px';
@@ -853,123 +843,12 @@ function miTransitionBuild(){
   }catch(e){ snap=null; }
   build();
   if(snap){
-    // Forced reflow (same trick as popoverRise's `void pop.offsetWidth`), not a double-RAF:
-    // the snapshot's opacity:1 must actually be committed to the render tree before adding
-    // mi-fade-out, or the browser can coalesce both states and skip straight to the end,
-    // which is a jump rather than a fade.
+    /* The clone's opacity:1 has to be committed before the fade class, or the browser
+       collapses both states and jumps to the end. */
     void snap.offsetWidth;
     snap.classList.add('mi-fade-out');
     setTimeout(()=>{ try{ snap.remove(); }catch(e){} },380);
   }
-}
-/* MI: flagWave — a short ripple at a key-date marker's position. pointerEvents:'none' matters
-   here: without it the ring sits over the marker and steals the mouseover/mouseout pair from
-   the point underneath as it grows, which is what made the native tooltip "blink" — Highcharts
-   saw the pointer leave the point (onto the ring) and re-enter a frame later. */
-function miFlagWave(point){
-  if(!chart||!point||!point.graphic) return;
-  try{
-    const cx=chart.plotLeft+point.plotX, cy=chart.plotTop+point.plotY;
-    const col=(point.options.marker&&point.options.marker.fillColor)||KEYDATE_PURPLE;
-    const ring=chart.renderer.circle(cx,cy,3)
-      .attr({fill:'none',stroke:col,'stroke-width':2,opacity:.55,zIndex:9})
-      .css({pointerEvents:'none'}).add();
-    ring.animate({r:16,opacity:0},{duration:560},()=>{try{ring.destroy();}catch(e){}});
-  }catch(e){}
-}
-/* MI: flagWiggle — one short sway of a single key-date pennant, then it stops. Grouped
-   flags ("+N") are excluded by the caller. The class is removed when the animation ends
-   so the next hover can play it again. CSS transform only; the pole underneath is a
-   separate overlay and stays put. */
-function miFlagWiggle(point){
-  const el=point&&point.graphic&&point.graphic.element;
-  if(!el) return;
-  el.classList.remove('mi-wiggle');
-  void el.getBoundingClientRect();
-  el.classList.add('mi-wiggle');
-  const done=()=>{ el.classList.remove('mi-wiggle'); el.removeEventListener('animationend', done); };
-  el.addEventListener('animationend', done);
-}
-/* MI: healthHover — the bar under the pointer stays at full colour; every other reading
-   in the strip drops back. Hit targets (the transparent rects) are not faded, so the
-   pointer can still move from bar to bar. */
-function miHealthFocus(c, seg){
-  (c.miHbars||[]).forEach(el=>{
-    try{ el.animate({opacity: el===seg ? 1 : 0.28},{duration:140}); }catch(e){}
-  });
-}
-function miHealthClear(c){
-  (c.miHbars||[]).forEach(el=>{ try{ el.animate({opacity:1},{duration:140}); }catch(e){} });
-}
-/* MI: horizonSpread — ease the back diamond left and the front diamond right, in the
-   icon's own viewBox units (about 5px each way at the drawn size). The middle diamond
-   stays. CSS transforms on these <g>s do not paint, so this writes the SVG attribute. */
-let miHorizonGen=0;
-function miHorizonShift(tx1, tx3){
-  const hp=document.getElementById('horizonPill');
-  if(!hp||!MI.horizonSpread) return;
-  const g1=hp.querySelector('.hp-d1'), g3=hp.querySelector('.hp-d3');
-  if(!g1||!g3) return;
-  const gen=++miHorizonGen;
-  const a1=parseFloat(g1.getAttribute('data-tx')||'0');
-  const a3=parseFloat(g3.getAttribute('data-tx')||'0');
-  const t0=performance.now(), dur=260;
-  function frame(now){
-    if(gen!==miHorizonGen) return;
-    const t=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-t,3);
-    const v1=a1+(tx1-a1)*e, v3=a3+(tx3-a3)*e;
-    g1.setAttribute('transform','translate('+v1.toFixed(2)+',0)');
-    g3.setAttribute('transform','translate('+v3.toFixed(2)+',0)');
-    g1.setAttribute('data-tx',String(v1));
-    g3.setAttribute('data-tx',String(v3));
-    if(t<1) requestAnimationFrame(frame);
-  }
-  requestAnimationFrame(frame);
-}
-/* MI: renewalGoal — read the renewal as the journey's goal: days remaining and how much of
-   the current term has elapsed. "Term start" is the latest Contract milestone before the
-   renewal; falls back to one year earlier if none is found (e.g. a brand-new account). */
-function renewalInfo(){
-  const rn=MOMENTS.find(m=>m.renewal);
-  if(!rn) return null;
-  const starts=MOMENTS.filter(m=>m.kind==='milestone'&&(m.detail||{}).tVal==='Contract'&&m.x<rn.x)
-                       .sort((a,b)=>b.x-a.x);
-  const start=starts.length?starts[0].x:rn.x-365*864e5;
-  const span=Math.max(1,rn.x-start);
-  const elapsed=Math.min(span,Math.max(0,TODAY-start));
-  return {rn, start, pct:Math.round((elapsed/span)*100), days:Math.round((rn.x-TODAY)/864e5)};
-}
-/* MI: renewalGoal — a simple home-base icon, shared by the edge pill and the popover card so
-   the two read as the same idea ("this is where the journey is headed") wherever you meet it. */
-const MI_HOME_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 10v9h13v-9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 19v-5.5h4V19" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-/* MI: renewalGoal — the key-date pennant, used on the lane chip only. Same silhouette as
-   the flags in the strip: a triangle with a short pole. The popover card keeps the home icon. */
-const MI_FLAG_ICON='<svg viewBox="0 0 14 16" aria-hidden="true"><path d="M2.3.6h1.4V15.2H2.3z"/><g class="rgp-fly"><path d="M3.5 1.1L12.8 5.5 3.5 9.9z"/></g></svg>';
-/* MI: renewalGoal — a short, friendly line keyed to how close the renewal is, instead of a
-   flat date-only statement. Kept to one sentence so it reads as a nudge, not a report. */
-function miGoalLine(info){
-  if(info.days>90) return 'Still a way off, but this is the one everything in the journey is building toward.';
-  if(info.days>30) return 'Coming into view — worth starting to line things up for this one.';
-  if(info.days>=0) return "Almost here — this is the home stretch.";
-  return `This one passed ${Math.abs(info.days)} days ago.`;
-}
-/* MI: renewalGoal — replaces the generic "key dates carry a name and date only" line in the
-   renewal's own popover with a warmer message plus the same term-progress read as the flag's
-   ring, in card form. Shared between the in-lane flag's popover and the edge pill's popover —
-   both call openDetail() on the same renewal moment, so one function covers both. */
-function miGoalCard(){
-  const info=renewalInfo();
-  if(!info) return '';
-  const pct=Math.max(4,Math.min(100,info.pct));
-  const daysTxt=info.days>=0 ? `${info.days} days to go` : `${Math.abs(info.days)} days ago`;
-  return `<div class="goalcard">
-    <div class="goalcard-icon">${MI_HOME_ICON}</div>
-    <div class="goalcard-body">
-      <div class="goalcard-msg">${miGoalLine(info)}</div>
-      <div class="goalcard-row"><span class="goalcard-days">${daysTxt}</span><span class="goalcard-pct">${info.pct}% of term elapsed</span></div>
-      <div class="goalcard-bar"><div class="goalcard-fill" style="width:${pct}%"></div></div>
-    </div>
-  </div>`;
 }
 /* ===================================================================================== */
 const SPARK='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 0C6.6 3.6 8.4 5.4 12 6C8.4 6.6 6.6 8.4 6 12C5.4 8.4 3.6 6.6 0 6C3.6 5.4 5.4 3.6 6 0Z" fill="currentColor"/></svg>';
@@ -1017,13 +896,14 @@ function firstMoment(){
    milestone, which makes the horizon pill redundant — the chevron reaches the same items and
    already carries the same count. Here the chevron withdraws at the boundary and the pill is the
    only route to older milestones, so clicking it earns its place. */
-function pagingFloor(){ return EVENTS_FROM; }
+/* CS-only tenants have no Staircase, so no events retention window: paging runs back to the
+   first milestone, and there is no "events start" boundary to explain. */
+function pagingFloor(){ return CS_ONLY? firstMoment() : EVENTS_FROM; }
 
-function atHorizon(){ return winMin<=EVENTS_FROM+864e5; }   // events have run out
+function atHorizon(){ return !CS_ONLY && winMin<=EVENTS_FROM+864e5; }   // events have run out
 function atFloor(){ return winMin<=pagingFloor()+864e5; }   // = atHorizon() in this build
-function onMilestoneHistory(m){ return m.kind==='milestone' || m.kind==='keydate'; }
 function earlierMilestones(){
-  return MOMENTS.filter(m=>passesFilters(m)&&onMilestoneHistory(m)&&m.x<winMin).length;
+  return MOMENTS.filter(m=>passesFilters(m)&&(m.kind==='milestone'||m.kind==='keydate')&&m.x<winMin).length;
 }
 const TODAY=D(7,13);    // actual today, used for the marker
 function addMonths(ms,n){const d=new Date(ms);d.setUTCMonth(d.getUTCMonth()+n);return d.getTime();}
@@ -1177,8 +1057,7 @@ function rowsRequired(list,lane){
    the calendar; a milestone is a recorded change. Merging them behind one +N pill made the
    count unreadable ("+2" of what?) and let a flag stand in for a diamond group, or the reverse,
    because a cluster wears its latest item's marker. So each class is partitioned on its own and
-   the results share rows. Manual events are events: they share the events lane, not the
-   milestone lane. */
+   the results share rows. Manual events stay with milestones: both are recorded activities. */
 function partitionSeparately(items,win,lane){
   const kd=items.filter(m=>m.kind==='keydate'), rest=items.filter(m=>m.kind!=='keydate');
   return partitionByWindow(rest,win,lane,'').concat(partitionByWindow(kd,win,lane,'~kd'))
@@ -1300,6 +1179,12 @@ function labelPlan(pt){
   const o=pt.options||{}, none={name:'',pill:''};
   if(dlOffscreen(pt)) return none;
   let room=rowRoom(pt);
+  /* The renewal chip sits over the right end of the key-date strip. A key-date label that
+     would run under it is cut short (or dropped) at the chip's left edge instead. */
+  if(pt.series.name==='Key dates' && renewPillShown()){
+    const cm=chipMode(pt.series.chart);
+    if(cm.w) room=Math.min(room, pt.series.chart.plotWidth+10-cm.w-4-pt.plotX-(LBL_X+12));
+  }
   /* Key-date groups carry no +N pill: a padded pill is taller than the 16px strip. The
      stacked flag drawn in the render hook says "more than one", and hover lists them. */
   if(o.single===false && pt.series.name==='Key dates'){
@@ -1308,12 +1193,19 @@ function labelPlan(pt){
   }
   if(o.single===false){
     if(!o.domName) return none;
-    const bw=cntW(o.count-1);
+    /* One lane mixes kinds in a group, and the latest item leads. When the latest is an event,
+       a milestone behind it is invisible — measured: "CSAT down to 3.1" vanished behind an
+       event's +4 in every busy-month scenario. Milestones are the rare, high-signal kind, so
+       the pill carries a small diamond whenever its group hides one. */
+    const dom=MOMENTS[o.mi];
+    const hidMs=(BUCKETS[o.bkey]||[]).some(m=>m!==dom&&m.kind==='milestone');
+    const ptxt='+'+(o.count-1)+(hidMs?' \u25C7':'');
+    const bw=ptxt.length*6.3+CNT_PAD*2;
     if(bw>room+LBL_CLR-3) return none;    // pill alone won't fit
     room-=bw+CNT_GAP;                     // pill outranks the name, measured first
     const fitted=fitLabel(o.domName,room);
     if(!fitted) return none;              // no name -> no pill either
-    return {name:fitted.lines.join('<br>'), pill:'+'+(o.count-1)};
+    return {name:fitted.lines.join('<br>'), pill:ptxt};
   }
   const fitted=fitLabel(o.name,room);
   return {name:fitted?fitted.lines.join('<br>'):'', pill:''};
@@ -1334,7 +1226,9 @@ let winMin=DEFAULT_MIN, winMax=DEFAULT_MAX;
    tracks whichever view is active — resetting to DEFAULT_* while maximised jumped to the
    compact range instead of the fullscreen one. */
 let HOME_MIN=DEFAULT_MIN, HOME_MAX=DEFAULT_MAX;
-function atHome(){ return winMin===HOME_MIN && winMax===HOME_MAX; }
+/* Within a day either side, not exact: paging clamps at the horizon and month arithmetic can
+   leave the window a few hours off home, which used to make the widget think it had left. */
+function atHome(){ return Math.abs(winMin-HOME_MIN)<864e5 && Math.abs(winMax-HOME_MAX)<864e5; }
 function isZoomed(){ return (winMax-winMin) < (HOME_MAX-HOME_MIN)*0.9; }
 /* ---- rows, not tiers ----
    Density is absorbed vertically. A lane holds as many label rows as its height allows, and
@@ -1369,8 +1263,9 @@ const PILL_DL={enabled:true,formatter:dlCount,align:'left',verticalAlign:'middle
 const NAV_GUTTER=40;
 // Rows grow away from the divider. Milestones are the upper lane now, so they grow up;
 // events are below and grow down. Solo mode centres one lane and grows up.
-// v3: events are the upper lane and grow up; milestones grow down toward the key-date strip.
-function growsUp(lane){ return lane==='lifecycle' || soloLane()===lane; }
+// Rows grow away from the gap: milestones (upper) grow up, events (lower) grow down toward
+// the key-date strip. A lone lane grows up from its floor.
+function growsUp(lane){ return lane==='milestone' || soloLane()===lane; }
 function rowAnchor(lane){
   const b=laneGeom(lane).band;
   return growsUp(lane)? b.from+ROW_OFF : b.to-ROW_OFF;
@@ -1444,53 +1339,53 @@ const BASE=[
  {x:D19(8,10),kind:'milestone',name:'Contract signed',detail:{atype:'Milestone',tLabel:'Milestone type',tVal:'Contract',notes:'Initial contract signed. ARR $180,000 on a 24-month term.',by:'System Administrator'}},
  {x:D19(9,18),kind:'milestone',name:'Onboarding kickoff',detail:{atype:'Milestone',tLabel:'Milestone type',tVal:'Success Plan',notes:'Onboarding kicked off with a target go-live of 20 Jan.',by:'System Administrator'}},
  {x:D19(10,20),kind:'keydate',name:'Kickoff meeting',detail:{}},
- {x:D19(11,2),kind:'lifecycle',sent:'watch',name:'Early pricing talk',detail:{engagement:EN({kind:'email',time:'16:20',title:'Gainsight | Pricing overview for FY26 planning',account:'Albatross Inc.',
-  thread:{date:'02/12/2025',person:'Taylor Reed',category:'Commercial'},sentiments:{neu:1},
+ {x:D19(11,2),kind:'lifecycle',sent:'watch',name:'Early pricing talk',detail:{engagement:EN({kind:'email',time:'16:20',title:'Gainsight | Pricing overview for FY26 planning',account:'365 Retail Markets, LLC',
+  thread:{date:'02/12/2025',person:'Nergis Tepeli',category:'Commercial'},sentiments:{neu:1},
   events:['Commercial discussion'],products:['CS'],
-  from:'Jordan Blake',to:['Taylor Reed','Riley Chen'],
-  body:'Taylor,\n\nThanks for sending the FY26 outline. Before we go further, could you share how the pricing scales if we add more teams next year? We are budgeting now and want to avoid surprises.\n\nThanks,\nJordan Blake\nDirector of Customer Success'}),signals:[SG('Pricing question','The customer raises pricing structure before any renewal process has begun, which reads as early commercial interest rather than negotiation.','"Before we go further, could you share how the pricing scales if we add more teams next year?"')],atype:'Event',tLabel:'Event type',tVal:'Commercial discussion',notes:'Early pricing conversation.',why:'A pricing structure question came up early in the engagement, ahead of any formal renewal discussion.',by:'Staircase',staircase:true}},
+  from:'Trey Smith',to:['Nergis Tepeli','Jacob McNulty'],
+  body:'Nergis,\n\nThanks for sending the FY26 outline. Before we go further, could you share how the pricing scales if we add more teams next year? We are budgeting now and want to avoid surprises.\n\nThanks,\nTrey Smith\nDirector of Customer Success'}),signals:[SG('Pricing question','The customer raises pricing structure before any renewal process has begun, which reads as early commercial interest rather than negotiation.','"Before we go further, could you share how the pricing scales if we add more teams next year?"')],atype:'Event',tLabel:'Event type',tVal:'Commercial discussion',notes:'Early pricing conversation.',why:'A pricing structure question came up early in the engagement, ahead of any formal renewal discussion.',by:'Staircase',staircase:true}},
  // 2026 past — sensed / measured (all on or before the current month)
  {x:D(1,12),kind:'milestone',name:'Sponsor Left',detail:{atype:'Milestone',tLabel:'Milestone type',tVal:'Sponsor Change',notes:'Primary sponsor (VP Operations) departed. No successor named at the time of the change.',by:'System Administrator'}},
- {x:D(2,1),kind:'lifecycle',sent:'watch',name:'New contact intro',detail:{engagement:EN({kind:'email',time:'09:41',title:'Introducing Sam on our side',account:'Albatross Inc.',
-  thread:{date:'02/02/2026',person:'Jordan Blake',category:'Account'},sentiments:{neu:1},
+ {x:D(2,1),kind:'lifecycle',sent:'watch',name:'New contact intro',detail:{engagement:EN({kind:'email',time:'09:41',title:'Introducing Sam on our side',account:'365 Retail Markets, LLC',
+  thread:{date:'02/02/2026',person:'Trey Smith',category:'Account'},sentiments:{neu:1},
   events:['Account personnel changes'],products:['CS'],
-  from:'Jordan Blake',to:['Taylor Reed'],
+  from:'Trey Smith',to:['Nergis Tepeli'],
   body:'Adding Sam here, who will be handling the day to day from our side. Nothing else changes, I am still the exec sponsor.'}),signals:[SG('New contact','A new individual is introduced into the thread on the customer side, with no indication that the existing sponsor is stepping away.','"Adding Sam here, who will be handling the day to day from our side."')],atype:'Event',tLabel:'Event type',tVal:'Account personnel changes',notes:'New contact introduced.',why:'A new contact was introduced on the customer side. The existing sponsor relationship is unchanged.',by:'Staircase',staircase:true}},
- {x:D(2,20),kind:'lifecycle',sent:'watch',name:'Renewal terms raised',detail:{engagement:EN({kind:'meeting',time:'20:00',title:'Bi-Weekly Cadence Call | Gainsight & Albatross Inc.',account:'Albatross Inc.',
-  attendees:['Jordan Blake','Casey Morgan','Avery Brooks','Jamie Foster'],
+ {x:D(2,20),kind:'lifecycle',sent:'watch',name:'Renewal terms raised',detail:{engagement:EN({kind:'meeting',time:'20:00',title:'Bi-Weekly Cadence Call | Gainsight & 365 Retail Markets',account:'365 Retail Markets, LLC',
+  attendees:['Trey Smith','Brandon Niblock','Adam M. Smock','Courtney Stephens'],
   events:['Commercial discussion'],products:['CS'],
   topics:[{s:'neu',t:'Commercial: multi-year terms'},{s:'pos',t:'Commercial: expansion budget'},{s:'neu',t:'Renewal: timing'}],
   links:['View in Gong','View in Gainsight'],
   summary:'The customer opened renewal terms ahead of schedule, asking how a two-year commitment would affect rate. Gainsight committed to modelling both options before the next cadence call.'}),signals:[SG('Multi-year interest','The customer opens discussion of a longer commitment, which qualifies as active participation in commercial terms.','"What would a two-year commitment do to the number?"'),SG('Discount requested','The same thread ties the longer term to a rate concession.','"Is there flexibility on the rate if we commit for longer?"')],atype:'Event',tLabel:'Event type',tVal:'Commercial discussion',notes:'Pricing / renewal terms discussed.',why:'The customer opened renewal terms themselves, asking how a longer commitment would affect pricing.',by:'Staircase',staircase:true}},
  {x:D(2,20),kind:'keydate',name:'QBR',detail:{}},
- {x:D(2,25),kind:'lifecycle',sent:'risk',name:'Competitor named',detail:{engagement:EN({kind:'meeting',time:'18:30',title:'Quarterly Review | Gainsight & Albatross Inc.',account:'Albatross Inc.',
-  attendees:['Jordan Blake','Casey Morgan','Dana Rivera'],
+ {x:D(2,25),kind:'lifecycle',sent:'risk',name:'Competitor named',detail:{engagement:EN({kind:'meeting',time:'18:30',title:'Quarterly Review | Gainsight & 365 Retail Markets',account:'365 Retail Markets, LLC',
+  attendees:['Trey Smith','Brandon Niblock','Michelle Lopez'],
   events:['Churn risk','Commercial discussion'],products:['CS','CE'],
   topics:[{s:'neg',t:'Commercial: cost scrutiny'},{s:'neg',t:'Competitive: alternative vendor'},{s:'neg',t:'Value: outcomes questioned'}],
   links:['View in Gong','View in Gainsight'],
   summary:'Budget review pressure dominated the call. A named alternative vendor was raised alongside cost concerns, and the customer asked for a line-item justification of current spend.'}),signals:[SG('Competitor named','A named alternative vendor is introduced alongside cost concerns, which raises displacement risk within the existing relationship.','"The team is comparing us against a cheaper option."'),SG('Value questioned','The customer questions whether current spend is justified by delivered outcomes.','"We are being asked to justify every line item this cycle."')],atype:'Event',tLabel:'Event type',tVal:'Churn risk',notes:'Competitor mention, cost concerns.',why:'A named competitor was raised alongside cost concerns in the same thread, which crossed the churn-risk threshold.',by:'Staircase',staircase:true}},
- {x:D(2,8),kind:'lifecycle',sent:'risk',name:'Strong dissatisfaction',detail:{engagement:EN({kind:'email',time:'21:07',title:'Re: Reporting outage \u2014 still no update',account:'Albatross Inc.',
-  thread:{date:'11/03/2026',person:'Taylor Reed',category:'Support'},sentiments:{neg:1},
+ {x:D(2,8),kind:'lifecycle',sent:'risk',name:'Strong dissatisfaction',detail:{engagement:EN({kind:'email',time:'21:07',title:'Re: Reporting outage \u2014 still no update',account:'365 Retail Markets, LLC',
+  thread:{date:'11/03/2026',person:'Nergis Tepeli',category:'Support'},sentiments:{neg:1},
   events:['Extremely negative message'],products:['CS','CE'],
-  from:'Jordan Blake',to:['Taylor Reed','Riley Chen'],
-  body:'Taylor,\n\nThis is not the level of support we expected when we signed. We are three days into a reporting outage during our board cycle and I still do not have an ETA.\n\nJordan Blake\nDirector of Customer Success'}),signals:[SG('Negative sentiment','Strongly negative language about response times, sustained across a support thread rather than a single message.','"This is not the level of support we expected when we signed."')],atype:'Event',tLabel:'Event type',tVal:'Extremely negative message',notes:'Strongly negative sentiment detected.',why:'Strongly negative sentiment across a support thread, with dissatisfaction expressed about response times.',by:'Staircase',staircase:true}},
- {x:D(2,10),kind:'lifecycle',sent:'risk',name:'Escalation language',detail:{engagement:EN({kind:'email',time:'11:14',title:'Re: Reporting outage \u2014 escalation',account:'Albatross Inc.',
-  thread:{date:'13/03/2026',person:'Taylor Reed',category:'Support'},sentiments:{neg:1},
+  from:'Trey Smith',to:['Nergis Tepeli','Jacob McNulty'],
+  body:'Nergis,\n\nThis is not the level of support we expected when we signed. We are three days into a reporting outage during our board cycle and I still do not have an ETA.\n\nTrey Smith\nDirector of Customer Success'}),signals:[SG('Negative sentiment','Strongly negative language about response times, sustained across a support thread rather than a single message.','"This is not the level of support we expected when we signed."')],atype:'Event',tLabel:'Event type',tVal:'Extremely negative message',notes:'Strongly negative sentiment detected.',why:'Strongly negative sentiment across a support thread, with dissatisfaction expressed about response times.',by:'Staircase',staircase:true}},
+ {x:D(2,10),kind:'lifecycle',sent:'risk',name:'Escalation language',detail:{engagement:EN({kind:'email',time:'11:14',title:'Re: Reporting outage \u2014 escalation',account:'365 Retail Markets, LLC',
+  thread:{date:'13/03/2026',person:'Nergis Tepeli',category:'Support'},sentiments:{neg:1},
   events:['Extremely negative message'],products:['CS'],
-  from:'Jordan Blake',to:['Taylor Reed'],
+  from:'Trey Smith',to:['Nergis Tepeli'],
   body:'I am going to have to take this to my VP if we do not see movement today. Please let me know who owns this internally.'}),signals:[SG('Escalation language','The customer signals they are raising the issue internally, which typically precedes executive involvement.','"I am going to have to take this to my VP if we do not see movement today."')],atype:'Event',tLabel:'Event type',tVal:'Extremely negative message',notes:'Escalation language in thread.',why:'Escalation language appeared in an active thread, suggesting the issue was being raised internally on the customer side.',by:'Staircase',staircase:true}},
- {x:D(2,13),kind:'lifecycle',sent:'risk',name:'Support frustration',detail:{engagement:EN({kind:'email',time:'08:02',title:'Re: Reporting outage \u2014 third follow up',account:'Albatross Inc.',
-  thread:{date:'16/03/2026',person:'Taylor Reed',category:'Support'},sentiments:{neg:1},
+ {x:D(2,13),kind:'lifecycle',sent:'risk',name:'Support frustration',detail:{engagement:EN({kind:'email',time:'08:02',title:'Re: Reporting outage \u2014 third follow up',account:'365 Retail Markets, LLC',
+  thread:{date:'16/03/2026',person:'Nergis Tepeli',category:'Support'},sentiments:{neg:1},
   events:['Extremely negative message'],products:['CS'],
-  from:'Jordan Blake',to:['Taylor Reed'],
+  from:'Trey Smith',to:['Nergis Tepeli'],
   body:'Third time asking about this. Still waiting on an update here.'}),signals:[SG('Repeated frustration','Frustration expressed across multiple messages in the same thread over several days.','"Third time asking about this."','"Still waiting on an update here."')],atype:'Event',tLabel:'Event type',tVal:'Extremely negative message',notes:'Frustration with support response.',why:'Repeated frustration with support turnaround, expressed over several days in the same thread.',by:'Staircase',staircase:true}},
- {x:D(4,3),kind:'lifecycle',sent:'risk',name:'Slow onboarding',detail:{engagement:EN({kind:'email',time:'15:48',title:'Implementation timeline',account:'Albatross Inc.',
-  thread:{date:'03/05/2026',person:'Taylor Reed',category:'Implementation'},sentiments:{neg:1},
+ {x:D(4,3),kind:'lifecycle',sent:'risk',name:'Slow onboarding',detail:{engagement:EN({kind:'email',time:'15:48',title:'Implementation timeline',account:'365 Retail Markets, LLC',
+  thread:{date:'03/05/2026',person:'Nergis Tepeli',category:'Implementation'},sentiments:{neg:1},
   events:['Extremely negative message'],products:['CS'],
-  from:'Casey Morgan',to:['Taylor Reed'],
+  from:'Brandon Niblock',to:['Nergis Tepeli'],
   body:'We were told this would be live by March. Where are we against that plan?'}),signals:[SG('Onboarding pace','Dissatisfaction with implementation speed measured against the expectation set at signing.','"We were told this would be live by March."')],atype:'Event',tLabel:'Event type',tVal:'Extremely negative message',notes:'Dissatisfaction with onboarding pace.',why:'Dissatisfaction with the pace of onboarding, raised during a working session rather than a formal review.',by:'Staircase',staircase:true}},
- {x:D(4,9),kind:'lifecycle',sent:'risk',name:'Renewal doubt',detail:{engagement:EN({kind:'meeting',time:'19:00',title:'Cadence Call | Gainsight & Albatross Inc.',account:'Albatross Inc.',
-  attendees:['Jordan Blake','Casey Morgan','Drew Collins'],
+ {x:D(4,9),kind:'lifecycle',sent:'risk',name:'Renewal doubt',detail:{engagement:EN({kind:'meeting',time:'19:00',title:'Cadence Call | Gainsight & 365 Retail Markets',account:'365 Retail Markets, LLC',
+  attendees:['Trey Smith','Brandon Niblock','Scott McNamara'],
   events:['Extremely negative message','Commercial discussion'],products:['CS'],
   topics:[{s:'neg',t:'Renewal: intent uncertain'},{s:'neg',t:'Value: adoption below plan'}],
   links:['View in Gong','View in Gainsight'],
@@ -1499,15 +1394,15 @@ const BASE=[
  {x:D(4,14),kind:'milestone',name:'Adoption SP launched',detail:{atype:'Milestone',tLabel:'Milestone type',tVal:'Success Plan',notes:'Adoption success plan launched with 6 objectives across 2 teams.',by:'System Administrator'}},
  {x:D(5,5),kind:'milestone',status:'risk',name:'CSAT down to 3.1',detail:{atype:'Milestone',tLabel:'Milestone type',tVal:'CSAT Change',notes:'CSAT fell from 4.4 to 3.1 out of 5, across 18 responses.',by:'System Administrator'}},
  {x:D(5,10),kind:'keydate',name:'Onboarding complete',detail:{}},
- {x:D(5,18),kind:'lifecycle',sent:'watch',name:'EBR mentioned',detail:{engagement:EN({kind:'email',time:'13:26',title:'EBR scheduling',account:'Albatross Inc.',
-  thread:{date:'19/06/2026',person:'Taylor Reed',category:'Meeting'},sentiments:{neu:1},
+ {x:D(5,18),kind:'lifecycle',sent:'watch',name:'EBR mentioned',detail:{engagement:EN({kind:'email',time:'13:26',title:'EBR scheduling',account:'365 Retail Markets, LLC',
+  thread:{date:'19/06/2026',person:'Nergis Tepeli',category:'Meeting'},sentiments:{neu:1},
   events:['EBR'],products:['CS'],
-  from:'Jordan Blake',to:['Taylor Reed','Morgan Patel'],
+  from:'Trey Smith',to:['Nergis Tepeli','Shaik Idrisulla'],
   body:'Can we get the EBR on the calendar for early June? I would like both our VPs on it.'}),signals:[SG('Custom keyword: EBR','Matched the tenant-configured keyword "EBR", indicating an executive business review is being arranged.','"Can we get the EBR on the calendar for early June?"')],atype:'Event',tLabel:'Event type',tVal:'EBR',notes:'Matched on keyword "EBR".',why:'Matched the custom keyword "EBR", indicating an executive business review was being arranged.',by:'Staircase',staircase:true}},
- {x:D(6,10),kind:'lifecycle',sent:'pos',name:'Strong praise',detail:{engagement:EN({kind:'email',time:'10:05',title:'Re: Weekly summary',account:'Albatross Inc.',
-  thread:{date:'10/07/2026',person:'Taylor Reed',category:'Account'},sentiments:{pos:1},
+ {x:D(6,10),kind:'lifecycle',sent:'pos',name:'Strong praise',detail:{engagement:EN({kind:'email',time:'10:05',title:'Re: Weekly summary',account:'365 Retail Markets, LLC',
+  thread:{date:'10/07/2026',person:'Nergis Tepeli',category:'Account'},sentiments:{pos:1},
   events:['Highly positive message'],products:['CS','CE'],
-  from:'Jordan Blake',to:['Taylor Reed'],
+  from:'Trey Smith',to:['Nergis Tepeli'],
   body:'Whatever changed on your side after May, it is working. The team is finally getting the numbers they need without chasing anyone.'}),signals:[SG('Unprompted praise','Positive feedback offered without being solicited, crediting a specific outcome to the product.','"Whatever changed on your side after May, it is working."')],atype:'Event',tLabel:'Event type',tVal:'Highly positive message',notes:'Strongly positive feedback.',why:'Strongly positive feedback about the team, with the product credited for a specific outcome.',by:'Staircase',staircase:true}},
  {x:D(6,20),kind:'milestone',name:'Usage up 15%',detail:{atype:'Milestone',tLabel:'Milestone type',tVal:'Usage Change',notes:'Weekly active users rose from 62 to 71, up 15%.',by:'System Administrator'}},
  {x:D(6,24),kind:'milestone',name:'Health score up 8',detail:{atype:'Milestone',tLabel:'Milestone type',tVal:'Health Score Change',notes:'Health score rose from 56 to 64.',by:'System Administrator'}},
@@ -1523,11 +1418,11 @@ const BASE=[
    "added manually" empty state, which would be wrong for a Staircase-inferred event. */
 function ev(x,sent,name,type,why){
  return {x,kind:'lifecycle',sent,name,detail:{
-   engagement:EN({kind:'email',time:'12:00',title:'Re: '+name,account:'Albatross Inc.',
-     thread:{date:Highcharts.dateFormat('%d/%m/%Y',x),person:'Taylor Reed',category:'Account'},
+   engagement:EN({kind:'email',time:'12:00',title:'Re: '+name,account:'365 Retail Markets, LLC',
+     thread:{date:Highcharts.dateFormat('%d/%m/%Y',x),person:'Nergis Tepeli',category:'Account'},
      sentiments:sent==='risk'?{neg:1}:{neu:1},
      events:[type],products:['CS'],
-     from:'Jordan Blake',to:['Taylor Reed'],
+     from:'Trey Smith',to:['Nergis Tepeli'],
      body:'Synthetic message body for stress-test scenarios. Not real customer content.'}),
    signals:[SG(name,why,'"Synthetic excerpt for stress-test scenarios."')],
    atype:'Event',tLabel:'Event type',tVal:type,notes:why,why,by:'Staircase',staircase:true}};
@@ -1558,6 +1453,18 @@ const SCENARIOS={
  /* Stacked flags: key dates that fall on the same day or within a few days of each other
     group behind one flag. Three cases — a pair a day apart, a same-day pair, and a group of
     three in one week — so the stack and its hover list can be checked at each size. */
+ /* Key dates crowding the renewal chip, placed relative to the default window's end so the
+    case holds at any width: one whose LABEL would run under the chip (cut at the chip's edge),
+    and one whose FLAG would sit under it (chip shrinks to "in 4 mo", then lifts above). */
+ sparseBusy:{label:'Busy events, one milestone (sparse org)', data:()=>BASE
+   .filter(m=>m.kind!=='milestone'||m.name==='Usage up 15%').concat(burst(18,5))},
+ kdChip:{label:'Key date flag near the renewal chip', data:()=>BASE.concat([
+   {x:DEFAULT_MAX-60*864e5,kind:'keydate',name:'Executive business review',detail:{}},
+   {x:DEFAULT_MAX-5*864e5, kind:'keydate',name:'Contract review',detail:{}}
+ ])},
+ kdChipLabel:{label:'Key date label running under the renewal chip', data:()=>BASE.concat([
+   {x:DEFAULT_MAX-70*864e5,kind:'keydate',name:'Executive business review',detail:{}}
+ ])},
  kdClose:{label:'Key dates close together (stacked flags)', data:()=>BASE.concat([
    {x:D(2,21),kind:'keydate',name:'Renewal discussion',detail:{}},
    {x:D(5,10),kind:'keydate',name:'Training complete',detail:{}},
@@ -1624,12 +1531,14 @@ function displayName(m){
 /* Meta line for tooltip, popover and drawer. When the label already IS the type, repeating
    it would read "Churn risk / Churn risk · 12 Mar", so the type is dropped whenever it
    duplicates the label. */
+function daysUntil(x){ return Math.round((x-TODAY)/864e5); }
 function metaLine(m,sep){
  const bits=[], label=displayName(m), t=typeLabel(m);
  if(t && t!==label) bits.push(t);
  bits.push(Highcharts.dateFormat('%e %b %Y',m.x));
  if(m.sent) bits.push(SENT[m.sent].l);
- if(m.x>=CURRENT) bits.push('planned');
+ if(m.renewal){ const d=daysUntil(m.x); bits.push(d>0?'in '+d+' days':d===0?'today':Math.abs(d)+' days ago'); }
+ else if(m.x>=CURRENT) bits.push('planned');
 /* Separator is a parameter because the tooltip needs a bullet and the popover and drawer
     still use a middot — changing it here silently restyled all three. */
  return bits.join(sep||' · ');
@@ -1643,8 +1552,14 @@ function typeLabel(m){
    Categories mirror the Configure dialog; keys are the configured type or key-date name.
    The stress-test burst types are included so Configure can be exercised against dense data. */
 const CFG_CATS=[
+ /* grouped:false — Staircase does not classify types by sentiment. Types and colours only. */
+ {id:'events', label:'Events', grouped:false, items:[
+   'Churn risk','Churn notification','Extremely negative message',
+   'Highly positive message','Renewal','Executive to executive touch-base',
+   'Account personnel changes','Organization personnel changes','Commercial discussion','QBR','EBR',
+   'Manual entry']},
  {id:'auto', label:'Automatic Milestones', items:['Contract','Sponsor Change','ARR Change','Case Count','Usage Change','Health Score Change','NPS Change','CSAT Change']},
- {id:'manual', label:'Manual Milestones', items:['Success Plan','Manual entry']},
+ {id:'manual', label:'Manual Milestones', items:['Success Plan']},
  {id:'keyd', label:'Key Dates', items:['Kickoff meeting','QBR','Onboarding complete','Renewal date']},
 ];
 const CFG={};
@@ -1656,11 +1571,27 @@ CFG_CATS.forEach(c=>{CFG[c.id]={}; c.items.forEach(i=>CFG[c.id][i]=true);});
    Returning null means "not ours to filter", and configOn() reads that as visible. The quick
    chip still hides the events lane wholesale; what it cannot do is filter event TYPES, which is
    correct — that decision lives in Staircase. */
+/* FINAL: events ARE configurable here now. Customers asked to deselect Staircase event types,
+   grouped by sentiment, because busy accounts overload the timeline. The list is the tenant's
+   configured Staircase types; Staircase still decides which types EXIST, this only decides which
+   show on this widget. Manual events moved here from Manual Milestones: they are events. */
+const EVENT_GROUP={
+ 'Churn risk':'Risk','Churn notification':'Risk','Extremely negative message':'Risk',
+ 'Highly positive message':'Positive','Renewal':'Positive','Executive to executive touch-base':'Positive',
+ 'Account personnel changes':'Neutral','Organization personnel changes':'Neutral',
+ 'Commercial discussion':'Neutral',
+ /* OPEN: custom types (QBR, EBR here) carry no inherent sentiment. Someone has to assign each
+    one a group — an admin in Staircase, or a default of Neutral. Shown as Neutral for now. */
+ 'QBR':'Neutral','EBR':'Neutral',
+ 'Manual entry':'Added by a CSM'
+};
+const EVENT_GROUP_ORDER=['Risk','Positive','Neutral','Added by a CSM'];
 function cfgKey(m){
  if(m.kind==='keydate') return ['keyd',m.name];
  const t=(m.detail||{}).tVal||'';
+ if(m.kind==='manual') return ['events','Manual entry'];
  if(m.kind==='milestone') return [CFG.manual[t]!==undefined?'manual':'auto',t];
- return null;                       // events, including CSM-entered ones — not a milestone filter
+ return ['events',t];
 }
 function configOn(m){
  const k=cfgKey(m);
@@ -1673,7 +1604,7 @@ let sentFilter='all';
 /* Quick filter: transient show/hide of the three broad types. Distinct from Configure,
    which sets which elements exist on the timeline at all. */
 const laneOn={milestone:true,lifecycle:true,keydate:true};
-// Manual events are events. The Events toggle hides them with the rest of that lane.
+// Lanes by type: a manual event is an event, so it rides with the Events toggle.
 function quickOn(m){ return m.kind==='manual' ? laneOn.lifecycle : laneOn[m.kind]; }
 /* FIX 3, part 1: the filter test is separated from the renewal-pill suppression.
    visible() hides a future renewal because the edge pill stands in for it, but the paging
@@ -1697,12 +1628,16 @@ function planned(m){ return m.kind==='manual' || m.planned || m.x>=CURRENT; }
    was also showing put the chevron directly underneath the pill. */
 function renewPillShown(){
  const rn=MOMENTS.find(m=>m.renewal);
+ /* The chip is a "now" signal: it shows only in the default window. Paged back into history,
+    "renewal in 4 mo" is beside the point, so the renewal is just one of the items counted on
+    the forward chevron; paged forward to it, it is a flag like any key date. atHome() is
+    tolerant to a day, so coming back to the default window always brings the chip back. */
  return !!(rn && quickOn(rn) && configOn(rn) && atHome() && rn.x>winMax);
 }
 
 function markerFor(m){
- // Hollow ring: a CSM-entered event, drawn in the events lane. Solid fill is a detected event.
- if(m.kind==='manual') return {symbol:'circle',radius:5,fillColor:'#fff',lineColor:'#E08A0C',lineWidth:2.25};
+ // Solid dot like every other event; orange marks it as a manual entry.
+ if(m.kind==='manual') return {symbol:'circle',radius:5,fillColor:'#E08A0C',lineColor:'#fff',lineWidth:1};
  if(m.kind==='milestone'){
    // larger, hollow: milestones read as outlined shapes, events as solid dots
    const stroke=m.status?SENT[m.status].c:(MTYPE_COLOR[m.detail.tVal]||MCLUSTER_GREY);
@@ -1712,7 +1647,7 @@ function markerFor(m){
  return {symbol:'circle',radius:5,fillColor:eventColor(m),lineColor:'#fff',lineWidth:1};
 }
 const LANE_WINDOW={};   // window in days the ladder settled on, per lane
-// Split by kind. Events lane holds detected events and CSM-entered events (planned check-in).
+// v2: split by SOURCE. 'milestone' lane = recorded in Gainsight, 'lifecycle' lane = AI-detected.
 const LANEKINDS={milestone:['milestone'],lifecycle:['lifecycle','manual'],keydate:['keydate']};
 function laneKinds(lane){
   if(LAYOUT==='merged') return lane==='lifecycle'?['lifecycle','manual','milestone']
@@ -1726,7 +1661,7 @@ function laneKinds(lane){
    toggles only — a lane emptied by the sentiment filter or by Configure still has its
    types switched ON, so it keeps its half and says it's empty. */
 /* ---- lane order and vertical split ----
-   Events sit on top, milestones below. There are far fewer milestones than events, so the
+   Milestones sit ON TOP, events below. There are far fewer milestones than events, so the
    split is deliberately uneven: milestones are the scarce lane, events the dense one.
    Set the two pixel heights below directly; the share is derived for reporting only.
 
@@ -1764,7 +1699,32 @@ const ROWS_MIN=4, ROWS_MAX=6, TARGET_WINDOW_DAYS=7;
 let EV_ROWS=ROWS_MIN;
 function evLanePx(){ return ROW_OFF+(EV_ROWS-1)*ROW_PX+8; }
 function lanePxFor(rows,pitch){ return ROW_OFF+Math.max(0,rows-1)*pitch+8; }
-function plotHCompact(){ return kdBase()+LANE_MS_PX+LANE_GAP+evLanePx(); }
+/* ---- adaptive milestone lane ----
+   MS_ROWS is decided once per build, before the event rows, from the milestones in the current
+   window: the rows they need with no grouping, capped at MS_ROWS_MAX (beyond that the ladder
+   groups them, as it does for events). If none fall in the window but the account HAS
+   milestones, the lane keeps one row so "No milestones in this period" can say so. If the
+   account has none at all, MS_ROWS is 0 and the lane disappears. */
+const MS_ROWS_MAX=3;
+let MS_ROWS=1;
+function chooseMsRows(){
+  if(LAYOUT==='merged'||!laneOn.milestone){ MS_ROWS=0; return; }
+  const kinds=laneKinds('milestone');
+  const mine=MOMENTS.filter(m=>kinds.includes(m.kind)&&visible(m));
+  if(!mine.length){
+    MS_ROWS=MOMENTS.some(m=>kinds.includes(m.kind)&&passesFilters(m))?1:0; return;
+  }
+  MS_ROWS=Math.max(1,Math.min(MS_ROWS_MAX, rowsRequired(partitionByWindow(mine,0,'milestone'),'milestone')));
+}
+// +14: headroom over the top row, where the TODAY label sits at the top of the plot
+function msCompactPx(){ return MS_ROWS? lanePxFor(MS_ROWS,ROW_PX)+14 : 0; }
+function plotHCompact(){
+  const ms=msCompactPx();
+  // A lone events lane carries the paging chevrons in its middle (NAV_GUTTER), which costs it a
+  // row. Add that height back so an account with no milestones keeps its full event rows.
+  if(soloLane()==='lifecycle') return kdBase()+evLanePx()+NAV_GUTTER+ROW_PAD;
+  return kdBase()+ms+(ms?LANE_GAP:0)+evLanePx();
+}
 const AXIS_MIN=0;
 
 /* The axis MAX tracks the real plot height, so one unit stays one pixel at any size. It was
@@ -1779,7 +1739,7 @@ function plotHPx(){
      directly so the fit and the container agree. */
   const h=isMaxed()? maxChartH()
                    : (document.getElementById('chart')?.clientHeight||chartH());
-  return Math.max(160, Math.round(h-14-marginBottom()));
+  return Math.max(60, Math.round(h-14-marginBottom()));   // floor only guards against nonsense; the row search sizes the real height
 }
 function msLanePx(){ return isMaxed()? LANE_MS_PX_MAX : LANE_MS_PX; }
 /* In fullscreen the lanes are sized to the rows the DATA uses, not to the height available.
@@ -1789,25 +1749,27 @@ let FS_LANES=null;
 /* ---- v3 vertical stack, bottom to top ----
      key-date strip  KD_LANE px, one row, sits directly on the health bars
      KD_GAP          clear space so the lowest milestone label never touches a flag label
-     milestones      automatic or manual milestones
-     LANE_GAP        no divider line any more; still the home of the paging chevrons
-     events          detected events and CSM-entered events, the dense lane, on top
+     milestones      recorded in Gainsight (milestones, CSM entries)
+     LANE_GAP        no divider line any more; still the home of the chevrons and renewal pill
+     events          detected by Staircase AI, the dense lane, on top
    Key dates get their own strip because they are calendar anchors the reader wants to find
    first — QBR, onboarding complete, renewal — and in a shared lane they competed with
    milestones for rows and could land anywhere vertically. Pinned to the bottom, every key date
    is on the same line as the time axis, so it reads like a dated tick, not a data point. */
 const KD_LANE=16, KD_GAP=12;
 function kdOn(){ return !!laneOn.keydate; }
-function kdBase(){ return kdOn()? KD_LANE+KD_GAP : 0; }
+// Reserved even when key dates are toggled off: the widget height must not change.
+function kdBase(){ return KD_LANE+KD_GAP; }
 function laneBands(){
+  /* bottom to top: key-date strip, KD_GAP, EVENTS, LANE_GAP, MILESTONES */
   const base=kdBase();
   if(isMaxed() && FS_LANES){
-    const msTo=base+FS_LANES.ms, evFrom=msTo+LANE_GAP;
-    return {H:evFrom+FS_LANES.ev, base, msFrom:base, msTo, evFrom, divider:msTo+LANE_GAP/2};
+    const evTo=base+FS_LANES.ev, msFrom=evTo+LANE_GAP;
+    return {H:msFrom+FS_LANES.ms, base, evFrom:base, evTo, msFrom, msTo:msFrom+FS_LANES.ms, divider:evTo+LANE_GAP/2};
   }
-  const H=plotHPx(), ms=Math.min(msLanePx(), Math.max(48,H-base-LANE_GAP-60));
-  const msTo=base+ms, evFrom=msTo+LANE_GAP;
-  return {H, base, msFrom:base, msTo, evFrom, divider:msTo+LANE_GAP/2};
+  const H=plotHPx(), ms=msCompactPx(), gap=ms?LANE_GAP:0;
+  const evTo=Math.max(base+60, H-ms-gap), msFrom=evTo+gap;
+  return {H, base, evFrom:base, evTo, msFrom, msTo:H, divider:evTo+gap/2};
 }
 const LANE_BOT=0;
 function laneTop(){ return laneBands().H; }
@@ -1815,8 +1777,8 @@ function dividerY(){ return laneBands().divider; }
 function laneBoth(){
   const b=laneBands();
   return {
-    lifecycle:{y:(b.evFrom+b.H)/2, band:{from:b.evFrom,to:b.H}},
     milestone:{y:(b.msFrom+b.msTo)/2, band:{from:b.msFrom,to:b.msTo}},
+    lifecycle:{y:(b.evFrom+b.evTo)/2, band:{from:b.evFrom,to:b.evTo}},
     keydate:{y:KD_LANE/2, band:{from:0,to:KD_LANE}}
   };
 }
@@ -1825,20 +1787,10 @@ function soloMid(){ return laneSolo().y; }
 /* Where the paging chevrons and renewal pill sit: the gap between events and milestones, or
    the middle of the lane when only one is showing. */
 function navY(){ return soloLane()? soloMid() : dividerY(); }
-/* Side labels name whichever of the two lanes is showing. They are drawn in the gutter
-   the chart already had — margins stay 24 — so the plot box does not move or resize.
-   The merged layout is one shared band, so it has no lane name. */
-function laneLabelEntries(){
-  if(LAYOUT==='merged') return [];
-  const a=lanesOn();
-  const out=[];
-  if(a.lifecycle) out.push(['Events','lifecycle']);
-  if(a.milestone) out.push(['Milestones','milestone']);
-  return out;
-}
 function lanesOn(){
   if(LAYOUT==='merged') return {milestone:false, lifecycle:(laneOn.milestone||laneOn.lifecycle)};
-  return {milestone:laneOn.milestone, lifecycle:laneOn.lifecycle};
+  // milestone lane counts as off when the account has no milestones to show (MS_ROWS 0)
+  return {milestone:laneOn.milestone&&MS_ROWS>0, lifecycle:laneOn.lifecycle};
 }
 function soloLane(){
   if(LAYOUT==='merged') return 'lifecycle';
@@ -1920,6 +1872,7 @@ function laneData(lane){
 
    if(items.length===1){
      out.push({x:g.bx,y:sy,tier,crowded:g.crowded,single:true,bkey:g.k,mi:MOMENTS.indexOf(items[0]),
+       className:lane==='keydate'?'kd-flag':undefined,
        name:displayName(items[0]),kind:items[0].kind,sent:items[0].sent,marker:markerFor(items[0])});
    } else {
      const dom=domOf(items);
@@ -2044,10 +1997,8 @@ function releaseLabelHover(){
 function refreshLanes(c){
  hideXhair();
  BUCKETS={};
- // MI: pageGlide — markers glide to their re-bucketed position instead of snapping. A plain
- // boolean (not a duration object) on setData's animation arg, matching Highcharts' own API;
- // false here reverts to a hard snap.
- const anim=(MI.pageGlide)?{duration:280}:false;
+ // MI: pageGlide — markers glide to their re-bucketed position instead of snapping.
+ const anim=MI.pageGlide?{duration:280}:false;
  c.series[0].setData(laneData('milestone'),false,anim,false);
  c.series[1].setData(laneData('lifecycle'),false,anim,false);
  c.series[2].setData(laneData('keydate'),false,anim,false);
@@ -2287,7 +2238,7 @@ function drawRegions(c){
       ms?'#5B32C7':'#0068CC');
   });
   if(!solo){
-    const gy1=px(laneBands().evFrom), gy2=px(laneBands().msTo);
+    const gy1=px(laneBands().msFrom), gy2=px(laneBands().evTo);
     box(gy1,gy2,'rgba(0,0,0,0.05)','rgba(0,0,0,0.35)');
     tag(L+3,(gy1+gy2)/2+3,'LANE GAP '+Math.round(Math.abs(gy2-gy1))+'px','#5B6770');
   }
@@ -2326,12 +2277,12 @@ function drawRegions(c){
    exposure regardless of how the navigation question lands, and the wording ports straight
    into a keyboard component later. */
 function laneDescription(){
-  if(LAYOUT==='merged') return 'Customer journey on a single lane: events and milestones together, with key dates on their own strip above the health bars, over stage bands.';
+  if(LAYOUT==='merged') return 'Customer journey on a single lane: AI-detected events, milestones and CSM entries together, with key dates on their own strip above the health bars, over stage bands.';
   return soloLane()==='lifecycle'
-    ?'Customer journey, events only, on a single lane over stage bands.'
+    ?'Customer journey, AI-detected events only, on a single lane over stage bands.'
     :soloLane()==='milestone'
     ?'Customer journey, milestones and key dates only, on a single lane over stage bands.'
-    :'Customer journey in two lanes: events on top, including detected events and CSM-entered events such as a planned check-in, milestones below, automatic or manual, and key dates on their own strip just above the health bars. Over stage bands.';
+    :'Customer journey in two lanes: milestones on top, events below, and key dates on their own strip just above the health bars. Over stage bands.';
 }
 function healthSummary(){
   if(!HEALTH.length) return '';
@@ -2485,102 +2436,90 @@ window.__t={laneOn,rowYs,rowCount,MOMENTSNOW:()=>MOMENTS,laneWindow:l=>LANE_WIND
   win:()=>[winMin,winMax],page,setScenario:k=>{const sc=SCENARIOS[k];SCENARIO=k;notConfigured=!!sc.notConfigured;
     HEALTH.length=0; if(!sc.noHealth) HEALTH.push(...HEALTH_ALL);
     STAGES.length=0; if(!sc.noStage) STAGES.push(...STAGES_ALL);
-    MOMENTS=sc.data();build();},
+    MOMENTS=scenarioData(sc);build();},
+  setCust:v=>{document.getElementById('custSel').value=v;document.getElementById('custSel').onchange({target:{value:v}});},
+  setRowsCS:n=>{ROWS_CS=n;build();},
   counts:()=>({health:HEALTH.length,stages:STAGES.length}),
   get overPill(){return overPill;}, get onLabel(){return onLabel;}};
 /* Choose the row count: the fewest rows at which a marker's window is TARGET_WINDOW_DAYS or
    finer. Rows and the window are circular — the ladder's answer depends on how many rows it
    has — so this is a small search rather than a formula: set a candidate, ask the ladder what
    it would settle on, stop when the answer is good enough. Three iterations at most. */
-/* ---- fullscreen: spend leftover rows on whichever lane can still open ----
-   The frame can hold more rows than the compact widget. A row that nothing sits on is
-   wasted if the other lane — or the same lane — still has a +N group. So the budget is
-   "every row that still fits at FS_PITCH_MIN", and events and milestones share it: each
-   takes the finest window whose rows fit in what is left for the pair. A lane that is
-   already showing every date does not keep empty rows; those rows go to the lane that
-   can still reveal something. Only when both are fully open does the pitch stretch, and
-   then only up to FS_PITCH_MAX, so a quiet account does not get a hundred pixels between
-   two labels. */
-function fsLaneRungs(lane){
-  const items=MOMENTS.filter(m=>laneKinds(lane).includes(m.kind)&&visible(m));
-  if(!items.length) return [{win:1e9, rows:1}];
-  return WINDOW_LADDER.map(win=>({
-    win,
-    rows:Math.max(1, rowsRequired(partitionSeparately(items, win, lane), lane))
-  }));
-}
-function fsChooseRows(lanes, maxTotal){
-  const costs={};
-  lanes.forEach(l=>{ costs[l]=fsLaneRungs(l); });
-  if(lanes.length===1){
-    const c=costs[lanes[0]];
-    let best=c[c.length-1];
-    c.forEach(r=>{ if(r.rows<=maxTotal && (r.win<best.win || (r.win===best.win && r.rows>best.rows))) best=r; });
-    return {[lanes[0]]: Math.min(maxTotal, best.rows)};
-  }
-  const [a,b]=lanes;
-  let best=null;
-  costs[a].forEach(ra=>{
-    costs[b].forEach(rb=>{
-      if(ra.rows+rb.rows>maxTotal) return;
-      const score=ra.win+rb.win, used=ra.rows+rb.rows;
-      if(!best || score<best.score || (score===best.score && used>best.used))
-        best={score, used, rows:{[a]:ra.rows, [b]:rb.rows}};
-    });
-  });
-  if(best) return best.rows;
-  /* Even the widest windows need more rows than the frame has. Split the rows by demand
-     and let the ladder fold the overflow, same as compact when it hits its ceiling. */
-  const ca=costs[a][costs[a].length-1], cb=costs[b][costs[b].length-1];
-  const aRows=Math.max(1, Math.min(maxTotal-1, Math.round(maxTotal*ca.rows/Math.max(1,ca.rows+cb.rows))));
-  return {[a]:aRows, [b]:Math.max(1, maxTotal-aRows)};
-}
+/* ---- fullscreen: size the lanes to the data ----
+   Fullscreen used to allocate a fixed milestone lane and hand the rest to events, so a sparse
+   account got 20 event rows and used 6 — 444px of empty lane below the last label.
+
+   Now the rows the data uses are spread across the WHOLE available height: the pitch stretches
+   until the two lanes fill the frame, so there is no block of empty lane below the last label
+   and no gap under the widget.
+
+   Both lanes share the one pitch, so the spacing matches either side of the divider, and each
+   lane's height is simply its own row count at that pitch — a lane with more rows gets more
+   height, without a separate proportional-split rule.
+
+   The trade, accepted deliberately: on a sparse account the pitch becomes large (measured ~119px
+   for six rows) and labels sit far apart. FS_PITCH_MAX is the ceiling if that ever needs
+   reining in. */
 function fitFullscreenLanes(){
   if(!isMaxed()){ FS_LANES=null; FS_PITCH=null; return; }
-  FS_LANES=null; FS_PITCH=null;
+  FS_LANES=null; FS_PITCH=null;                       // measure against the unfitted geometry
   const avail=Math.max(200, plotHPx()-LANE_GAP-kdBase());
-  const solo=soloLane();
-  const lanes=[];
-  if(solo!=='lifecycle') lanes.push('milestone');
-  if(solo!=='milestone') lanes.push('lifecycle');
-  const overhead=(ROW_OFF+8)*lanes.length;
-  const maxTotal=Math.max(lanes.length, Math.floor((avail-overhead)/FS_PITCH_MIN)+lanes.length);
-  const chosen=fsChooseRows(lanes, maxTotal);
-  const msRows=chosen.milestone||0, evRows=chosen.lifecycle||0;
-  const room=avail-(msRows?ROW_OFF+8:0)-(evRows?ROW_OFF+8:0);
-  const gaps=Math.max(1,(msRows?Math.max(0,msRows-1):0)+(evRows?Math.max(0,evRows-1):0));
-  FS_PITCH=Math.max(FS_PITCH_MIN, Math.min(FS_PITCH_MAX, Math.floor(room/gaps)));
-  const msH=msRows?lanePxFor(msRows,FS_PITCH):0;
-  const evH=evRows?lanePxFor(evRows,FS_PITCH):0;
-  /* A few pixels are left because the pitch is an integer. They go to the events band
-     only when they cannot reach another row — handing the band the whole remainder is
-     what used to invent empty rows above the last label. */
-  const slack=avail-(msH+evH);
-  const absorb=slack>0 && slack<FS_PITCH-8;
-  FS_LANES={
-    ms: msRows?msH:48,
-    ev: evRows?evH+(absorb?slack:0):Math.max(60, avail-(msRows?msH:48))
+  const need=lane=>{
+    const kinds=laneKinds(lane);
+    const mine=MOMENTS.filter(m=>kinds.includes(m.kind)&&visible(m));
+    if(!mine.length) return 1;
+    return Math.max(1, rowsRequired(groupByLadder(mine,lane).list,lane));
   };
+  const msRows=soloLane()==='lifecycle'?0:need('milestone');
+  const evRows=soloLane()==='milestone'?0:need('lifecycle');
+
+  /* One pitch, shared, so spacing matches either side of the divider.
+     NO lower clamp at ROW_PX. Forcing a 30px minimum overflowed the lane when the data wanted
+     more rows than the height could hold at 30 — the axis then compressed, the ladder saw fewer
+     rows than it had asked for and coarsened, and burst18 fell from 20 markers' worth of rows to
+     11. FS_PITCH_MIN is the real floor: below it a 16px label line would collide with the next
+     row, and at that point coarsening IS the correct answer, so the ladder is allowed to do it. */
+  const room=avail-(msRows?ROW_OFF+8:0)-(evRows?ROW_OFF+8:0);
+  const gaps=Math.max(1,(msRows?msRows-1:0)+(evRows?evRows-1:0));
+  FS_PITCH=Math.max(FS_PITCH_MIN, Math.min(FS_PITCH_MAX, Math.floor(room/gaps)));
+
+  /* Milestones take what their rows need at that pitch; EVENTS TAKE THE REMAINDER. Sizing both
+     from row counts left a 6-8px shortfall from two independent floor() calls — giving the
+     remainder to one lane makes the fill exact by construction rather than by arithmetic that
+     has to come out even. */
+  const ms=msRows?lanePxFor(msRows,FS_PITCH)+12:0;   // headroom for the TODAY label
+  FS_LANES={ms, ev: Math.max(60, avail-ms)};
 }
-/* Final build: the compact widget is one fixed height for every account, at the ceiling
-   row count, so it never resizes when the scenario or the data changes. The adaptive
-   search below is kept but not reached. */
-const FIXED_HEIGHT=true;
+/* ---- fixed rows by customer type ----
+   Replaces the adaptive row picker: height is fixed per tenant type. ROWS_JOINT for joint
+   customers, ROWS_CS for CS-only. See the measurements in the dev notes for why CS gets fewer.
+   The one-lane layout carries the paging chevrons in the middle of the lane, which can cost a
+   row depending on where the row ladder falls, so the lane is padded until it holds exactly the
+   target count. That padding depends only on the target, so it is the same on every account. */
+let CS_ONLY=false;
+const ROWS_JOINT=6;
+let ROWS_CS=4;
+let ROW_PAD=0;
+function targetRows(){ return CS_ONLY? ROWS_CS : ROWS_JOINT; }
 function chooseEventRows(){
-  if(isMaxed()) return;                     // fullscreen takes the remaining height instead
-  if(FIXED_HEIGHT){ EV_ROWS=ROWS_MAX; return; }
-  const kinds=laneKinds('lifecycle');
-  const mine=MOMENTS.filter(m=>kinds.includes(m.kind)&&visible(m));
-  for(let r=ROWS_MIN;r<=ROWS_MAX;r++){
-    EV_ROWS=r;
-    if(!mine.length) return;                // nothing to fit; stay at the minimum
-    const picked=groupByLadder(mine,'lifecycle');
-    if(picked.win<=TARGET_WINDOW_DAYS) return;
-  }
-  EV_ROWS=ROWS_MAX;                         // never satisfied: use the ceiling
+  if(isMaxed()) return;                     // fullscreen is an overlay; it does not affect C360
+  /* Smallest height that holds the target rows. Start below the nominal height and grow:
+     where the chevron gutter falls on the row ladder, the nominal height can hold one row MORE
+     than asked for, which wasted 30px. Then trim back to exactly the target. */
+  EV_ROWS=targetRows(); ROW_PAD=-150;
+  const el=document.getElementById('chart');
+  el.style.height=chartH()+'px';
+  while(rowCount('lifecycle')<EV_ROWS && ROW_PAD<90){ ROW_PAD+=2; el.style.height=chartH()+'px'; }
 }
 function build(){
  if(chart) chart.destroy();
+ chooseMsRows();      // before the event rows: the milestone lane's height feeds their budget
+ try{
+   const anyOff=CFG_CATS.some(c=>c.items.some(i=>CFG[c.id][i]===false));
+   const g=document.getElementById('btnCfg');
+   g.classList.toggle('filtered',anyOff);
+   g.setAttribute('aria-label','Configure Customer Journey'+(anyOff?', some items hidden':''));
+ }catch(e){}
  chooseEventRows();
  fitFullscreenLanes();
  if(!isMaxed()) document.getElementById('chart').style.height=chartH()+'px';
@@ -2595,7 +2534,7 @@ function build(){
       const c=this,yA=c.yAxis[0],xA=c.xAxis[0];
       // — health band on the axis, then stage strip beneath it —
       // Uses the same anchor as the today marker so the colour stops exactly at the line.
-      (c.healthEls||[]).forEach(e=>e.destroy()); c.healthEls=[]; c.miHbars=[];
+      (c.healthEls||[]).forEach(e=>e.destroy()); c.healthEls=[]; c.healthSegs=[];
       /* Health and stage come from elsewhere in Gainsight — Scorecard admin and a CRM-mapped
          picklist — not from whatever configures the CJ types. So each strip is gated on ITS
          OWN data rather than on the widget being configured: an account can have a health
@@ -2619,38 +2558,27 @@ function build(){
            the data would make two accounts with different ranges look identical, and the
            scale has 12 colour divisions that assume a fixed ceiling. */
         const hh=Math.max(HEALTH_FLOOR,Math.round(HH*Math.min(1,Math.max(0,p.v/HEALTH_MAX))));
-        /* The hover target is the drawn bar, plus 2px. It used to be the full strip and
-           4px up into the plot, so the readout opened over markers the pointer had
-           already moved on to. */
+        /* MI: the hover target is the drawn bar plus 2px. The full-strip target, 4px up into
+           the plot, kept the readout open over markers the pointer had already moved to. */
         const hitTop=Math.max(hY, hBase-hh-2);
         const hit=c.renderer.rect(c.plotLeft+x1,hitTop,Math.max(1,x2-x1),Math.max(4,hBase+2-hitTop),0)
           .attr({fill:'rgba(0,0,0,0.001)',zIndex:8}).add();
         hit.addClass('hhit');
         const prev=i>0?HEALTH[i-1].v:null;
-        hit.on('mouseover',e=>showHealthTip(e,p,prev));
+        /* Hover highlights by FADING THE OTHER WEEKS, never by changing the hovered bar. Height
+           encodes the score, so growing or lifting a bar showed a value it does not have. This
+           is the same inactive-fade the event and milestone markers use. */
+        const focusBar=on=>{ (c.healthSegs||[]).forEach(s2=>{ try{ s2.css({opacity:(!on||s2===seg)?1:.35}); }catch(_){} }); };
+        hit.on('mouseover',e=>{ showHealthTip(e,p,prev); focusBar(true); });
         hit.on('mousemove',e=>showHealthTip(e,p,prev));
-        hit.on('mouseout',hideHealthTip);
+        hit.on('mouseout',()=>{ hideHealthTip(); focusBar(false); });
         /* A 1px white edge between readings. Without it adjacent weeks of similar colour merge
            into one block and the strip reads as a continuous gradient — you cannot see that it
            is a weekly series, or count the weeks. crispEdges keeps the hairline from being
            anti-aliased into a grey smudge at 1px. */
         const seg=c.renderer.rect(c.plotLeft+x1,hBase-hh,Math.max(1,x2-x1-1),hh,0)
-          .attr({fill:HBAND(p.v),zIndex:6,opacity:1,'shape-rendering':'crispEdges'})
-          .css({pointerEvents:'none'}).add();
-        seg.addClass('mi-hbar');
-        hit.addClass('mi-hhit');
-        /* MI: healthHover — brighten this reading, dim the others. The transparent hit
-           rect is what receives the pointer; the coloured bar itself does not. */
-        if(MI.healthHover){
-          hit.on('mouseover',()=>miHealthFocus(c,seg));
-          hit.on('mouseout',e=>{
-            const rt=e&&e.relatedTarget;
-            if(rt&&rt.classList&&rt.classList.contains('mi-hhit')) return;
-            miHealthClear(c);
-          });
-        }
-        c.miHbars.push(seg);
-        c.healthEls.push(seg,hit);
+          .attr({fill:HBAND(p.v),zIndex:6,'shape-rendering':'crispEdges'}).add();
+        c.healthEls.push(seg,hit); c.healthSegs.push(seg.addClass('hbar'));
       });
       // no health data ahead of the marker — dashed neutral run
       let fx=xA.toPixels(Math.max(hNowX,winMin),true);
@@ -2837,25 +2765,25 @@ function build(){
         const merged=[];
         blocks.forEach(b=>{const l=merged[merged.length-1];
           if(l&&b[0]<=l[1]) l[1]=Math.max(l[1],b[1]); else merged.push([b[0],b[1]]);});
-        const path=[]; let y=top;
+        const path=[]; let y=top-6;   // starts at the dot, which sits above the plot
         merged.forEach(([a,b])=>{ if(a>y+2) path.push('M',tx,y,'L',tx,Math.min(a,bot)); y=Math.max(y,b); });
         if(y<bot-2) path.push('M',tx,y,'L',tx,bot);
         if(path.length) c.todayEls.push(c.renderer.path(path)
           .attr({stroke:'#5B9BF3','stroke-width':1,dashstyle:'ShortDash',zIndex:2}).add());
-        c.todayEls.push(c.renderer.text('TODAY',tx+4,top+9)
+        /* Below the plot the line carries on through the key-date strip floor, the health bars
+           and the stage strip down to the month labels, so "today" reads against the axis. Drawn
+           above the bars (zIndex 7), which would otherwise hide it. */
+        c.todayEls.push(c.renderer.path(['M',tx,bot,'L',tx,bot+labelY()-14])
+          .attr({stroke:'#5B9BF3','stroke-width':1,dashstyle:'ShortDash',zIndex:7})
+          .css({pointerEvents:'none'}).add());
+        /* Dot and label move up into the top margin, above the plot, where no row or count
+           pill can reach — the top row's pills were covering the label. */
+        c.todayEls.push(c.renderer.circle(tx,top-6,2.5).attr({fill:'#0369E9',zIndex:2})
+          .addClass('today-pulse').css({pointerEvents:'none'}).add());
+        c.todayEls.push(c.renderer.circle(tx,top-6,2.5).attr({fill:'#0369E9',zIndex:2})
+          .css({pointerEvents:'none'}).add());
+        c.todayEls.push(c.renderer.text('TODAY',tx+6,top-3)
           .css({color:'#0369E9',fontSize:'9px',fontWeight:'600',letterSpacing:'.05em'}).attr({zIndex:2}).add());
-        /* MI: todayPulse — a single soft ring at the TODAY line, once per chart instance (not
-           once per render, since render fires on every redraw/resize/toggle). Pure JS .animate()
-           so it can self-destroy; no CSS class needed. Remove this block to drop the effect. */
-        if(MI.todayPulse && !c.miTodayPulsed){
-          c.miTodayPulsed=true;
-          try{
-            const ring=c.renderer.circle(tx,top+9,3)
-              .attr({fill:'none',stroke:'#5B9BF3','stroke-width':2,opacity:.6,zIndex:2})
-              .css({pointerEvents:'none'}).add();
-            ring.animate({r:22,opacity:0},{duration:900},()=>{try{ring.destroy();}catch(e){}});
-          }catch(e){}
-        }
       }
 
       // Empty-lane hint: a lane with nothing in the window should say so rather than
@@ -2869,7 +2797,7 @@ function build(){
        ['Events','lifecycle',on.lifecycle,
         atHorizon()
           ? 'Events are only kept for the last '+EVENTS_MONTHS+' months'
-          : (LAYOUT==='merged'?'Nothing in this period':'No events in this period')]].forEach(([nm,lane,laneShown,msg])=>{
+          : (LAYOUT==='merged'?'Nothing in this period':'No AI-detected events in this period')]].forEach(([nm,lane,laneShown,msg])=>{
         if(!laneShown) return;
         const sr=c.series.find(x=>x.name===nm);
         const any=sr&&(sr.points||[]).some(p=>p.plotX!=null&&p.x>=winMin&&p.x<=winMax);
@@ -2880,34 +2808,7 @@ function build(){
         c.emptyEls.push(t);
       });
 
-      // Lane names, reading upward, centred on each visible band. The rotation origin is
-      // the start of the string, and -90 sends the word upward, so the origin sits half a
-      // word below the band's middle. x stays inside the existing left margin.
-      (c.laneLbl||[]).forEach(e=>e.destroy()); c.laneLbl=[];
-      {
-        const css={color:'#5F6C7A', fontSize:'12px', fontWeight:'500',
-          fontFamily:'Noto Sans, sans-serif', pointerEvents:'none'};
-        laneLabelEntries().forEach(([name,lane])=>{
-          const b=laneGeom(lane).band;
-          const top=yA.toPixels(b.to), bot=yA.toPixels(b.from);
-          let mid=(top+bot)/2;
-          const probe=c.renderer.text(name,0,-200).css(css).add();
-          const w=probe.getBBox().width; probe.destroy();
-          /* Solo mode puts the paging control on the lane centre, which is also where a
-             centred name would land. Keep the name in the free part of the band, above
-             that control, so the two don't cover each other. */
-          if(soloLane()===lane){
-            const navPx=yA.toPixels(navY());
-            const ceil=top+4, floor=navPx-18;
-            const room=floor-ceil;
-            if(room>=w) mid=(ceil+floor)/2;
-            else mid=ceil+w/2;   // word is taller than the gap: pin its top to the band
-          }
-          c.laneLbl.push(c.renderer.text(name, 15, mid+w/2)
-            .attr({rotation:-90, zIndex:5}).css(css).add());
-        });
-      }
-
+      drawLaneLabels(c);
       positionNav(c);
       markPopupOwners(c);
       updateEmptyState(c);
@@ -2998,7 +2899,7 @@ function build(){
        health bars. The AI tint stays on the events lane. */
     plotBands:[].concat(
       kdOn()?[{from:0,to:KD_LANE,color:'#F5F7F9',zIndex:0}]:[],
-      soloLane()?[]:[{from:laneBands().evFrom,to:laneBands().H,color:'rgba(107,63,168,0.03)',zIndex:0}])},
+      soloLane()?[]:[{from:laneBands().evFrom,to:laneBands().evTo,color:'#FAFBFC',zIndex:0}])},
   legend:{enabled:false},
   /* Chrome is switched OFF here and the card is drawn in CSS instead: Highcharts' own
      backgroundColor/border/shadow paint an SVG box behind the HTML, so styling both leaves a
@@ -3014,18 +2915,8 @@ function build(){
       const m=MOMENTS[o.mi];
       if(!m) return false;
       if(kdGroup(p)) return false;   // a key-date group shows its list instead
-      let meta=metaLine(m,' \u2022 ');
-      // MI: renewalGoal — the native tooltip carries the gamified countdown/progress that used
-      // to live in the removed toolbar chip, right where you're already looking on hover.
-      if(MI.renewalGoal && m.renewal){
-        const info=renewalInfo();
-        if(info){
-          const left=info.days>=0 ? `${info.days}d to go` : `${Math.abs(info.days)}d ago`;
-          meta += ` \u2022 ${left} \u2022 ${info.pct}% of term elapsed`;
-        }
-      }
       return `<div class="cjtip"><div class="t">${displayName(m)}</div>`+
-             `<div class="m">${meta}</div>`+`</div>`;
+             `<div class="m">${metaLine(m,' \u2022 ')}</div>`+`</div>`;
     }},
   plotOptions:{scatter:{cluster:{enabled:false},stickyTracking:false,
       point:{events:{
@@ -3038,16 +2929,11 @@ function build(){
           if(MI.hoverSpotlight) miSpotlight(this);
           const kg=kdGroup(this);
           if(kg){ showMiniList(kg,this.graphic,kg.length+' key dates'); return; }
-          // MI: flagWave / flagWiggle — single key dates only. A group opens its list instead.
-          if(!kg && this.series.name==='Key dates'){
-            if(MI.flagWave) miFlagWave(this);
-            if(MI.flagWiggle) miFlagWiggle(this);
-          }
           if(overPill){ try{ c.tooltip.hide(0); }catch(e){} }   // pill owns the pointer
           else hideMiniList(LIST_GRACE);
         },
         mouseOut:function(){
-          // MI: hoverSpotlight — restore full opacity/size on the way out.
+          // MI: hoverSpotlight — restore full opacity and size on the way out.
           if(MI.hoverSpotlight) miClearSpotlight(this);
           if(kdGroup(this)) hideMiniList();
         }
@@ -3099,7 +2985,7 @@ function clearHover(){
 build();
 
 const hTip=document.getElementById('hTip');
-/* The open marker card (.cjtip inside the chart tooltip), in wrap coordinates.
+/* MI: the open marker card (.cjtip inside the chart tooltip), in wrap coordinates.
    Hidden tooltips stay in the DOM, so a zero box or a hidden ancestor does not count. */
 function openMarkerTip(wrap){
   if(!chart||!chart.container) return null;
@@ -3116,9 +3002,9 @@ function openMarkerTip(wrap){
 function tipHits(l,t,w,h,o,gap){
   return l<o.r+gap && l+w>o.l-gap && t<o.b+gap && t+h>o.t-gap;
 }
-/* Default is just above the pointer. A key date flag sits on the health bars, so that
-   default lands on the flag's own card. Move the health card clear of it: above the
-   card when there is room, otherwise below it, otherwise to the side. */
+/* A key date flag sits on the health bars, so the readout's default spot (just above the
+   pointer) can land on the flag's own card. Move clear of it: above, then below, then
+   to the side. */
 function placeHealthTip(x,y){
   const wrap=document.getElementById('wrap').getBoundingClientRect();
   const w=hTip.offsetWidth, h=hTip.offsetHeight;
@@ -3146,21 +3032,21 @@ function showHealthTip(e,p,prev){
  const wrap=document.getElementById('wrap').getBoundingClientRect();
  const x=(e.clientX!=null?e.clientX:0)-wrap.left, y=(e.clientY!=null?e.clientY:0)-wrap.top;
  placeHealthTip(x,y);
- /* The marker card is positioned by Highcharts after this handler. Measure again once
-    it has landed, and only if this readout is still the one on screen. */
+ /* Highcharts positions the marker card after this handler; measure again once it lands,
+    and only if this readout is still the one on screen. */
  const token=p.d;
  hTip.dataset.d=token;
  requestAnimationFrame(()=>{ if(hTip.dataset.d===String(token) && hTip.style.display!=='none') placeHealthTip(x,y); });
 }
 function hideHealthTip(){hTip.style.display='none';}
-/* A chart redraw destroys the bar under the pointer, and removing that element does not
-   fire mouseout, which is how the readout stayed up after the pointer had moved on.
-   Any later move that is not still on a health bar closes it. */
+/* MI: a redraw destroys the bar under the pointer without a mouseout, which left the
+   readout up after the pointer moved on. Any later move off a health bar closes it. */
 document.addEventListener('mousemove',e=>{
   if(hTip.style.display==='none') return;
   const t=e.target;
   if(t&&t.classList&&t.classList.contains('hhit')) return;
   hideHealthTip();
+  if(chart) (chart.healthSegs||[]).forEach(s2=>{ try{ s2.css({opacity:1}); }catch(_){} });
 });
 
 const pop=document.getElementById('pop');
@@ -3232,10 +3118,6 @@ function showMiniList(items, anchorEl, title){
     hideMiniList(0); openDetail(MOMENTS[+r.dataset.i],null);
   });
   mList.classList.add('show');
-  // MI: groupSpring — the list springs open rather than appearing at once. 'show' is removed
-  // on every hide (see hideMiniList below), so the class is always fresh on a new open — no
-  // reflow trick needed to restart the animation.
-  if(MI.groupSpring) mList.classList.add('mi-spring'); else mList.classList.remove('mi-spring');
   const wrap=document.getElementById('wrap').getBoundingClientRect();
   const el=anchorEl&&anchorEl.element?anchorEl.element:anchorEl;
   const b=el.getBoundingClientRect();
@@ -3309,14 +3191,46 @@ function placePopAt(plotX,plotY){
 }
 // Glyph in the bucket list mirrors the canvas marker: solid circle for events,
 // hollow diamond for milestones, hollow square for key dates.
+/* ---- lane labels ----
+   Rotated, in the left margin, centred on each lane. Only lanes that are actually showing get
+   a label, so toggling one off leaves a single label for the lane that remains. The key-date
+   strip is too short for a rotated word; its flags explain it. */
+function drawLaneLabels(c){
+  (c.laneLbls||[]).forEach(e=>{try{e.destroy();}catch(_){}}); c.laneLbls=[];
+  const on=lanesOn(), solo=soloLane(), yA=c.yAxis[0];
+  const list=[];
+  // One-lane layout: no label. There is nothing to tell apart, and a long rotated label got
+  // clipped by the margin and collided with the paging chevron.
+  if(LAYOUT==='merged'){ /* no lane label */ }
+  else {
+    if(on.lifecycle) list.push(['Events',laneGeom('lifecycle').y,'lifecycle']);
+    if(on.milestone) list.push(['Milestones',laneGeom('milestone').y,'milestone']);
+  }
+  list.forEach(([t,y,lane])=>{
+    /* A label is drawn only where it fits along the lane. The adaptive milestone lane can be a
+       single 46px row, shorter than the word; a clipped label reads as a bug, and the diamonds
+       already say what the lane is. A lone lane keeps the label clear of its central chevron. */
+    const need=t.length*6.3+10, b=laneGeom(lane).band;
+    let lo=b.from, hi=b.to;
+    if(solo) lo=navY()+NAV_GUTTER/2;
+    if(hi-lo<need) return;
+    y=(lo+hi)/2;
+    // Inside the existing 24px margin, so the labels cost the plot no width.
+    const el=c.renderer.text(t,c.plotLeft-11,yA.toPixels(y))
+      .attr({rotation:-90,align:'center',zIndex:4})
+      .css({color:'#3C4A57',fontSize:'11px',fontWeight:'500',pointerEvents:'none'}).add();
+    c.laneLbls.push(el);
+  });
+}
 function isLaneSeries(s){ return s&&['Milestones','Events','Key dates'].includes(s.name); }
 function describeMoment(m,o){
   const kind=m.kind==='keydate'?'key date':m.kind==='milestone'?'milestone'
-    :m.kind==='manual'?'event recorded by a CSM':'event detected by AI';
-  return `${displayName(m)}, ${kind}, ${Highcharts.dateFormat('%e %B',m.x)}${m.sent?', '+SENT[m.sent].l:''}${m.x>=CURRENT?', planned':''}${o.count>1?', plus '+(o.count-1)+' more in this period':''}.`;
+    :m.kind==='manual'?'manual event':'event';
+  const hid=(BUCKETS[o.bkey]||[]).filter(x=>x!==m&&x.kind==='milestone').length;
+  return `${displayName(m)}, ${kind}, ${Highcharts.dateFormat('%e %B',m.x)}${m.sent?', '+SENT[m.sent].l:''}${m.x>=CURRENT?', planned':''}${o.count>1?', plus '+(o.count-1)+' more in this period'+(hid?', including '+(hid===1?'a milestone':hid+' milestones'):''):''}.`;
 }
 function rowGlyph(m){
- if(m.kind==='manual') return `<svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.6" fill="#fff" stroke="#E08A0C" stroke-width="2"/></svg>`;
+ if(m.kind==='manual') return `<svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#E08A0C"/></svg>`;
  if(m.kind==='milestone'){
   const c=m.status?SENT[m.status].c:(MTYPE_COLOR[m.detail.tVal]||MCLUSTER_GREY);
   return `<svg viewBox="0 0 12 12"><polygon points="6,1 11,6 6,11 1,6" fill="#fff" stroke="${c}" stroke-width="2"/></svg>`;}
@@ -3430,14 +3344,16 @@ function openDetail(m,pt){
 
  } else if(m.kind==='keydate'){
   h=`<div class="ptop"><h3 style="font-size:16px">${displayName(m)}</h3><div class="x" onclick="closePop()">×</div></div>
-   <div class="pmeta">Key date · ${dateStr}</div>`+
-   // MI: renewalGoal — a warmer, visual message for the renewal specifically, in place of
-   // the plain "key dates carry a name and date only" line every OTHER key date still gets
-   // below. No "jump to this month" action here any more (removed per feedback: this is a
-   // single calendar anchor, not a navigation shortcut — paging there can skip over nearby
-   // events/milestones the popover has no way to warn about).
-   (MI.renewalGoal && m.renewal ? miGoalCard() :
-     `<div class="fld" style="margin-top:12px"><div class="v" style="color:var(--rg60);font-size:12px;margin:0">Key dates carry a name and date only.</div></div>`);
+   <div class="pmeta">Key date · ${dateStr}</div>`;
+  /* Renewal: the exact countdown the chip rounds to months. Days only — no motivational
+     line (same words on every account, tone-deaf on an at-risk one), and no "% of term" bar:
+     the term start is not reliably derivable from milestones (the sample's own contract note
+     contradicts its renewal date). Add the bar only if CS exposes the current term's start. */
+  if(m.renewal){
+    const d=daysUntil(m.x);
+    h+=`<div class="rnbox"><div class="rnd">${d>0?`<b data-to="${d}">${d}</b> day${d===1?'':'s'}`:d===0?'Today':`<b>${-d}</b> day${d===-1?'':'s'} ago`}</div>`+
+       `<div class="rns">${d>0?'until renewal':d===0?'is the renewal date':'since the renewal date'}</div></div>`;
+  }
 
  } else {
   // Events are inferred by Staircase. The reasoning is the content; the record lives elsewhere.
@@ -3445,7 +3361,7 @@ function openDetail(m,pt){
    <div class="pmeta">${metaLine(m)}</div>
    ${m.kind==='manual'?`<div class="pmeta" style="margin-top:2px">Recorded by ${det.by||'a CSM'}</div>`:''}
    ${(det.signals&&det.signals.length)
-      ? `<div class="sigsec"><div class="sighd">Why AI flagged this</div>`+
+      ? `<div class="sigsec"><div class="sighd">Signal match</div>`+
         det.signals.map(g=>`<div class="sigblk"><div class="signm">${g.name}</div>`+
           `<div class="sigwhy">${g.why}</div>`+
           (g.quotes||[]).map(q=>`<div class="sigq">${q}</div>`).join('')+
@@ -3457,11 +3373,14 @@ function openDetail(m,pt){
  }
 
  pop.innerHTML=h; pop.style.display='block';
- // MI: popoverRise — a short fade-and-rise on open. closePop() only hides (display:none), it
- // never removes this class, so the class must be removed and re-added (forcing a reflow in
- // between) to restart the animation on every open — otherwise the 2nd+ open plays no animation.
- pop.classList.remove('mi-rise');
- if(MI.popoverRise){ void pop.offsetWidth; pop.classList.add('mi-rise'); }
+ /* the countdown counts up to its number as the popover opens; skipped for reduced motion */
+ const cnt=pop.querySelector('.rnd b[data-to]');
+ if(cnt && !(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){
+   const to=+cnt.dataset.to, t0=performance.now(), dur=Math.min(600,250+to*2);
+   const step=t=>{ const k=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-k,3);
+     cnt.textContent=Math.round(to*e); if(k<1) requestAnimationFrame(step); };
+   cnt.textContent='0'; requestAnimationFrame(step);
+ }
  const more=document.getElementById('popMore');
  if(more) more.onclick=ev=>{ev.preventDefault();closePop();openEventDetail(m);};
  if(pt) placePopAt(pt.plotX,pt.plotY);
@@ -3520,10 +3439,11 @@ function closePop(){
 function positionNav(c){
  c=c||chart; if(!c)return;
  const box=c.container.getBoundingClientRect(),wrap=document.getElementById('wrap').getBoundingClientRect();
- const midTop=(box.top-wrap.top)+c.yAxis[0].toPixels(navY())-14;
+ const midTop=(box.top-wrap.top)+c.yAxis[0].toPixels(navY())-14;   // half of the 28px chip
  /* FIX 3, part 2: counts use passesFilters(), not visible(), so a future renewal stays in
     the forward count once you page away and the pill stops representing it. While the pill
-    IS showing, the renewal is excluded from that count — the chip already stands for it. */
+    IS showing, it's excluded — otherwise the chevron lands underneath the pill, two controls
+    for the same item in the same place. */
  const pillShown=renewPillShown();
  /* At the horizon the chevron would page into empty lane, so it hands over to the horizon
     pill — one affordance for "older than this", not two pointing the same way. */
@@ -3567,7 +3487,7 @@ function closeMsHist(){
 }
 function openMsHist(anchorEl){
   const el=document.getElementById('msHist');
-  const items=MOMENTS.filter(m=>passesFilters(m)&&onMilestoneHistory(m)&&m.x<winMin)
+  const items=MOMENTS.filter(m=>passesFilters(m)&&(m.kind==='milestone'||m.kind==='keydate')&&m.x<winMin)
                      .slice().sort((a,b)=>a.x-b.x);
   if(!items.length) return;
   let html=`<div class="hd"><b>Earlier milestones</b>`+
@@ -3613,51 +3533,50 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.getElementById('msHist').classList.contains('show')) closeMsHist();
 });
 
-/* ---- earlier-milestones pill ----
-   Sits in the milestone lane (the lower band), centred on that band and inset from the
-   left plot edge so the vertical "Milestones" label in the margin stays readable.
-   Merged layout has no separate milestone band, so it uses the single shared lane.
-   Hidden when the milestone lane itself is toggled off — there is nowhere to put it. */
-/* Three overlapping outline diamonds, back to front: pale, mid, then #4BA3A4.
-   Same mark as the reference chip — hollow centres, each one shifted right and
-   painted over the one behind it, not three separate diamonds in a row. */
-const HORIZON_MARK='<svg viewBox="1 4 64 40" aria-hidden="true">'+
-  '<g fill="none" stroke-linejoin="miter">'+
-  '<g class="hp-d hp-d1"><polygon points="21,9 36,24 21,39 6,24" stroke="#AED6D6" stroke-width="6.2"/></g>'+
-  '<g class="hp-d hp-d2"><polygon points="33,9 48,24 33,39 18,24" stroke="#81BFBF" stroke-width="6.2"/></g>'+
-  '<g class="hp-d hp-d3"><polygon points="45,9 60,24 45,39 30,24" stroke="#4BA3A4" stroke-width="6.2"/></g>'+
-  '</g></svg>';
-function horizonHostLane(){
-  if(LAYOUT==='merged') return (laneOn.milestone||laneOn.lifecycle)?'lifecycle':null;
-  return laneOn.milestone?'milestone':null;
-}
+/* ---- events horizon pill ----
+   In the events lane a third of the way down, not centred: the lane is empty here, so a centred
+   pill floats in a large blank area. */
 function positionHorizonPill(c){
   const hp=document.getElementById('horizonPill');
   const older=earlierMilestones();
-  const lane=horizonHostLane();
-  if(!atHorizon() || older<1 || !lane){ hp.style.display='none'; return; }
+  if(!atHorizon() || older<1 || !laneOn.milestone){ hp.style.display='none'; return; }
   const from=Highcharts.dateFormat('%b %Y',EVENTS_FROM);
-  hp.innerHTML=`<span class="hp-ico">${HORIZON_MARK}</span>`+
-               `<span class="rl">${older} earlier milestone${older===1?'':'s'}</span>`;
-  hp.title=`Lifecycle events are kept for ${EVENTS_MONTHS} months, so none exist before ${from}. `+
-           `Open the earlier milestones.`;
-  hp.classList.toggle('mi-spread', !!MI.horizonSpread);
+  hp.innerHTML=`<span class="dstack" aria-hidden="true"><i></i><i></i><i></i></span><span class="rl">${older} earlier milestone${older===1?'':'s'}</span>`;
+  /* Why paging stops lives in the hover text, not on the chip: the chip's job is to open the
+     older milestones, and "events start Aug 2025" read as cryptic in that space. */
+  hp.setAttribute('aria-label',`${older} earlier milestone${older===1?'':'s'}. `+
+    `Events are kept for ${EVENTS_MONTHS} months, so none exist before ${from}.`);
+  hp.title=`Events are kept for ${EVENTS_MONTHS} months, so none exist before ${from}. `+
+           `Click to see the earlier milestones.`;
   hp.style.display='inline-flex';
-  /* innerHTML just replaced the diamonds. If the pointer is already on the pill,
-     open them again rather than waiting for the next enter. */
-  if(hp.matches(':hover')) miHorizonShift(-14, 14);
   const bx=c.container.getBoundingClientRect(), wrap=document.getElementById('wrap').getBoundingClientRect();
-  const y=laneGeom(lane).y;
-  const ph=hp.offsetHeight||32;
+  /* In the MILESTONES lane now: the count is of milestones, so it belongs with them. Left
+     edge, where the history it opens would be; the back chevron has withdrawn here. */
+  // one lane: upper part of the lane, clear of the chevrons in its middle
+  const lb=laneGeom(LAYOUT==='merged'?'lifecycle':'milestone').band;
+  const y=LAYOUT==='merged'? lb.to-(lb.to-lb.from)*0.18 : laneGeom('milestone').y;
   hp.style.right='auto';
-  hp.style.left=((bx.left-wrap.left)+c.plotLeft+8)+'px';
-  hp.style.top=((bx.top-wrap.top)+c.yAxis[0].toPixels(y)-ph/2)+'px';
+  hp.style.left=((bx.left-wrap.left)+c.plotLeft+2)+'px';
+  hp.style.top=((bx.top-wrap.top)+c.yAxis[0].toPixels(y)-11)+'px';
   hp.onclick=e=>{ e.stopPropagation(); closePop(); openMsHist(hp); };
 }
-/* MI: horizonSpread — diamonds ease apart for as long as the pointer is on the pill.
-   Listeners live on the button, which survives the innerHTML refresh above. */
-document.getElementById('horizonPill').addEventListener('mouseenter',()=>miHorizonShift(-14,14));
-document.getElementById('horizonPill').addEventListener('mouseleave',()=>miHorizonShift(0,0));
+/* ---- renewal chip size, decided once for labels and chip alike ----
+   full     "Renewal in 4 mo →", when no key-date flag is under it
+   compact  "in 4 mo →", when only the full chip would cover a flag
+   lifted   compact and raised above the strip, when even that would cover one; the strip's
+            right end is then clear, so labels there need no cap (w 0)
+   Widths are the measured chip widths, held inside the function: chipMode() runs during the
+   first render, before a top-level const this far down the file would exist. Labels and chip
+   read the same answer, so a label is never cut for a chip that has since shrunk or moved. */
+function chipMode(c){
+  const CHIP_W_FULL=136, CHIP_W_COMPACT=86;
+  const xs=((c.series.find(x=>x.name==='Key dates')||{}).points||[])
+    .filter(q=>q.plotX!=null&&q.plotX>=0&&q.plotX<=c.plotWidth).map(q=>q.plotX);
+  const hit=w=>xs.some(x=>x+16>c.plotWidth+10-w-4);
+  if(!hit(CHIP_W_FULL)) return {mode:'full',w:CHIP_W_FULL};
+  if(!hit(CHIP_W_COMPACT)) return {mode:'compact',w:CHIP_W_COMPACT};
+  return {mode:'lifted',w:0};
+}
 function positionRenewPill(c){
  const rp=document.getElementById('renewPill');
  const rn=MOMENTS.find(m=>m.renewal);
@@ -3666,50 +3585,26 @@ function positionRenewPill(c){
  const days=Math.round((rn.x-TODAY)/864e5);
  const months=Math.round(days/30.44);
  // relative distance answers the scanning question; exact date lives in the popover
- // MI: renewalGoal — key-date pennant on a lavender pill. No arrow.
- rp.classList.toggle('mi-goal-pill', !!MI.renewalGoal);
- rp.innerHTML = (MI.renewalGoal ? `<span class="rgp-icon">${MI_FLAG_ICON}</span>` : '')+
-   `<span class="rl">Renewal</span><span class="rd">in ${months} mo</span>`;
+ rp.innerHTML=`<svg class="rflag" viewBox="0 0 12 14" aria-hidden="true"><path d="M2.6 13.5V0.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path class="pn" d="M2.6 1L11.2 4.5L2.6 8Z" fill="currentColor"/></svg><span class="rl">Renewal</span><span class="rd">in ${months} mo</span><span class="ar" aria-hidden="true">→</span>`;
  rp.title=`Renewal date ${Highcharts.dateFormat('%e %b %Y',rn.x)}`;
  rp.style.display='inline-flex';
- rp.style.right='auto';
  const box=c.container.getBoundingClientRect(),wrap=document.getElementById('wrap').getBoundingClientRect();
- const pw=rp.offsetWidth||128, ph=rp.offsetHeight||22;
- const originTop=box.top-wrap.top, originLeft=box.left-wrap.left;
- /* Centred on the key-date strip. The chip is taller than the 16px strip, so if centring
-    would drop it onto the health bars, pin its foot to the strip and let the extra height
-    sit in the gap above the lane. */
- const mid=originTop+c.yAxis[0].toPixels(laneGeom('keydate').y);
- let top=mid-ph/2;
- const stripBot=originTop+c.yAxis[0].toPixels(0);
- if(top+ph>stripBot) top=stripBot-ph;
- const gap=8;
- const minLeft=originLeft+c.plotLeft+8;
- let left=originLeft+c.plotLeft+c.plotWidth-pw-8;
- /* A key date already in the strip — its flag or its label — claims that stretch of the
-    lane. Slide the chip left until it clears every one of them. */
- const obstacles=[];
- const kds=c.series.find(s=>s.name==='Key dates');
- (kds&&kds.points||[]).forEach(pt=>{
-   [pt.graphic].concat(pt.dataLabels||[]).forEach(el=>{
-     const node=el&&el.element;
-     if(!node||!node.getBoundingClientRect) return;
-     const r=node.getBoundingClientRect();
-     if(r.width<1||r.height<1) return;
-     obstacles.push({l:r.left-wrap.left, t:r.top-wrap.top, r:r.right-wrap.left, b:r.bottom-wrap.top});
-   });
- });
- const hits=L=>obstacles.some(o=>L+pw+gap>o.l && L-gap<o.r && top+ph+gap>o.t && top-gap<o.b);
- for(let n=0;n<8 && hits(left);n++){
-   const blocking=obstacles.filter(o=>left+pw+gap>o.l && left-gap<o.r && top+ph+gap>o.t && top-gap<o.b);
-   const edge=Math.min.apply(null, blocking.map(o=>o.l));
-   const next=edge-gap-pw;
-   if(!(next<left)) break;
-   left=next;
+ rp.style.left='auto';
+ // slight overhang past the plot edge, echoing the paging chevrons, to read as "beyond here"
+ rp.style.right=(wrap.width-((box.left-wrap.left)+c.plotLeft+c.plotWidth)-10)+'px';
+ // centred on the key-date strip: the renewal is a key date, so it waits in that lane
+ rp.style.top=((box.top-wrap.top)+c.yAxis[0].toPixels(KD_LANE/2)-12)+'px';   // half of 24px
+ /* Never cover a flag. If a key date in view lands under the chip, the chip drops its word
+    and shows only flag + distance; if a flag is still underneath, it lifts just above the
+    strip. The label of that key date is already cut at the chip's edge by labelPlan. */
+ const cm=chipMode(c);
+ rp.classList.remove('compact');
+ if(cm.mode!=='full'){
+   rp.classList.add('compact');
+   rp.innerHTML=`${rp.querySelector('.rflag').outerHTML}<span class="rd">in ${months} mo</span><span class="ar" aria-hidden="true">→</span>`;
+   rp.setAttribute('aria-label',`Renewal in ${months} months, ${Highcharts.dateFormat('%e %b %Y',rn.x)}`);
+   if(cm.mode==='lifted') rp.style.top=((box.top-wrap.top)+c.yAxis[0].toPixels(KD_LANE)-26)+'px';
  }
- if(left<minLeft) left=minLeft;
- rp.style.left=left+'px';
- rp.style.top=top+'px';
  rp.onclick=()=>openDetail(rn,null);
 }
 /* Paging shifts by the visible span, not a fixed 3 months. While zoomed into a week,
@@ -3722,7 +3617,11 @@ function page(dir){
  else { a=winMin+span*dir; b=winMax+span*dir; }
  // Clamp backwards paging at the events horizon, preserving the span. Past this point the
  // milestone history list is the route, not another page of empty lane.
- if(dir<0 && a<pagingFloor()){ a=pagingFloor(); b=a+span; }
+ if(dir<0 && a<pagingFloor()){
+   // clamp, but keep the window on whole months so paging forward lands back on home
+   const n=Math.round(span/(30.44*864e5));
+   a=pagingFloor(); b=addMonths(a,n)-864e5;
+ }
  setWindow(a,b,false);
 }
 function pageBack(){page(-1);}
@@ -3737,8 +3636,7 @@ document.getElementById('todayBtn').onclick=jumpHome;
 
 /* ---- event detail drawer: AI title, signal match, then the engagement itself ---- */
 const edMask=document.getElementById('edMask');
-// MI: drawerFade — gate the .mi-fade CSS (see style block) behind the flag with one class
-// toggle at init, rather than baking the transition into .edmask unconditionally.
+// MI: drawerFade — the backdrop fades in with the drawer's slide.
 if(MI.drawerFade) edMask.classList.add('mi-fade');
 let edLastFocus=null;
 const SDOT={pos:'#13AD68',neu:'#E08A0C',neg:'#DC3626'};
@@ -3785,7 +3683,7 @@ function openEventDetail(m){
 
   let h='';
   if(det.signals&&det.signals.length){
-    h+=`<div class="edsec">Why AI flagged this</div>`;
+    h+=`<div class="edsec">Signal match</div>`;
     det.signals.forEach(g=>{
       h+=`<div class="edsig"><div class="n">${g.name}</div><div class="w">${g.why}</div>`+
          (g.quotes||[]).map(q=>`<div class="q">${q}</div>`).join('')+`</div>`;
@@ -3884,11 +3782,12 @@ edMask.addEventListener('click',e=>{if(e.target===edMask) closeEventDetail();});
 
 /* ---- Configure Customer Journey ---- */
 const cfgMask=document.getElementById('cfgMask'), cfgModal=document.getElementById('cfgModal');
-let cfgDraft=null, cfgCat='auto', lastFocus=null;
+let cfgDraft=null, cfgCat='events', lastFocus=null;
 
 function cfgOpen(){
  cfgDraft=JSON.parse(JSON.stringify(CFG));
- cfgCat='auto';
+ cfgCat=CS_ONLY?'auto':'events';
+ document.getElementById('cfgSub').textContent='Choose which '+(CS_ONLY?'milestones and key dates':'events, milestones and key dates')+' appear on this timeline.';
  lastFocus=document.activeElement;
  cfgMask.classList.add('show');
  cfgRenderNav(); cfgRenderPane();
@@ -3900,6 +3799,7 @@ function cfgOpen(){
 function cfgClose(){
  cfgMask.classList.remove('show');
  if(lastFocus&&lastFocus.focus) lastFocus.focus();
+ setTimeout(hideBtnTip,0);   // focus coming back is not a hover; don't leave the tooltip up
 }
 function cfgDirty(){
  return JSON.stringify(cfgDraft)!==JSON.stringify(CFG);
@@ -3907,6 +3807,7 @@ function cfgDirty(){
 function cfgRenderNav(){
  const nav=document.getElementById('cfgNav'); nav.innerHTML='';
  CFG_CATS.forEach(c=>{
+  if(CS_ONLY && c.id==='events') return;   // no Staircase, no event types to choose
   const on=c.items.filter(i=>cfgDraft[c.id][i]).length;
   const el=document.createElement('div');
   el.className='mnavi'; el.setAttribute('role','tab');
@@ -3929,15 +3830,45 @@ function cfgRenderPane(){
  all.checked=on===cat.items.length; all.indeterminate=on>0&&on<cat.items.length;
  const list=document.getElementById('cfgList'); list.innerHTML='';
  if(!shown.length){list.innerHTML='<div class="mempty">No elements match that search.</div>';return;}
- shown.forEach(i=>{
+ const addItem=(i,host)=>{
   const lab=document.createElement('label'); lab.className='mrow';
   const cb=document.createElement('input'); cb.type='checkbox'; cb.className='mchk';
   cb.checked=!!cfgDraft[cat.id][i];
   cb.onchange=()=>{cfgDraft[cat.id][i]=cb.checked;document.getElementById('cfgSave').disabled=!cfgDirty();cfgRenderNav();cfgRenderPane();};
   lab.appendChild(cb);
+  if(cat.id==='events'){   // the type's own colour, so the list matches the canvas
+    const dot=document.createElement('span'); dot.className='cfgdot';
+    dot.style.background=i==='Manual entry'?'#E08A0C':(ETYPE_COLOR[i]||MCLUSTER_GREY);
+    lab.appendChild(dot);
+  }
   const span=document.createElement('span'); span.textContent=i; lab.appendChild(span);
-  list.appendChild(lab);
- });
+  host.appendChild(lab);
+ };
+ /* Events are grouped Risk / Positive / Neutral / Added by a CSM, each with its own tri-state
+    checkbox, so "hide all the neutral noise" is one click. */
+ if(cat.grouped){
+  EVENT_GROUP_ORDER.forEach(gname=>{
+   const items=shown.filter(i=>(EVENT_GROUP[i]||'Neutral')===gname);
+   if(!items.length) return;
+   const all=cat.items.filter(i=>(EVENT_GROUP[i]||'Neutral')===gname);
+   const onN=all.filter(i=>cfgDraft[cat.id][i]).length;
+   const hd=document.createElement('label'); hd.className='mgrp';
+   const gcb=document.createElement('input'); gcb.type='checkbox'; gcb.className='mchk';
+   gcb.checked=onN===all.length; gcb.indeterminate=onN>0&&onN<all.length;
+   gcb.setAttribute('aria-label','All '+gname+' events');
+   gcb.onchange=()=>{ all.forEach(i=>cfgDraft[cat.id][i]=gcb.checked);
+     document.getElementById('cfgSave').disabled=!cfgDirty(); cfgRenderNav(); cfgRenderPane(); };
+   hd.appendChild(gcb);
+   const t=document.createElement('span'); t.className='gt'; t.textContent=gname; hd.appendChild(t);
+   const ct=document.createElement('span'); ct.className='gc'; ct.textContent=onN+'/'+all.length; hd.appendChild(ct);
+   list.appendChild(hd);
+   const box=document.createElement('div'); box.className='mgrpbody';
+   items.forEach(i=>addItem(i,box));
+   list.appendChild(box);
+  });
+  return;
+ }
+ shown.forEach(i=>addItem(i,list));   // flat list; event types keep their colour dot
 }
 document.getElementById('cfgAll').onchange=e=>{
  const cat=CFG_CATS.find(c=>c.id===cfgCat);
@@ -3958,26 +3889,41 @@ cfgMask.addEventListener('click',e=>{if(e.target===cfgMask) cfgClose();});
 // select is the only change needed to bring it back.
 const sentSel=document.getElementById('sentSel');
 if(sentSel) sentSel.onchange=e=>{sentFilter=e.target.value;closePop();build();};
-// A truncated select still has to say what it holds: the hover title carries the full choice.
-function syncSelTitle(sel,purpose){
-  const o=sel.options[sel.selectedIndex];
-  sel.title=o? purpose+': '+o.textContent : purpose;
-}
+// The one-lane layout is retired in the final build; LAYOUT stays 'split'. The code paths are
+// left in place so the comparison build can still be reproduced.
+const layoutSel=document.getElementById('layoutSel');
+if(layoutSel){ layoutSel.value=LAYOUT; layoutSel.onchange=e=>{ LAYOUT=e.target.value; closePop(); build(); }; }
 const scenSel=document.getElementById('scenSel');
 Object.keys(SCENARIOS).forEach(k=>{
  const o=document.createElement('option'); o.value=k; o.textContent=SCENARIOS[k].label; scenSel.appendChild(o);
 });
 scenSel.value=SCENARIO;
-syncSelTitle(scenSel,'Scenario');
 scenSel.onchange=e=>{
-  syncSelTitle(scenSel,'Scenario');
   SCENARIO=e.target.value;
   const sc=SCENARIOS[SCENARIO];
   notConfigured=!!sc.notConfigured;
   // a brand-new account has no scorecard history and no stage yet either
   HEALTH.length=0; if(!sc.noHealth) HEALTH.push(...HEALTH_ALL);
   STAGES.length=0; if(!sc.noStage) STAGES.push(...STAGES_ALL);
-  MOMENTS=sc.data(); closePop(); build();
+  MOMENTS=scenarioData(sc); closePop();
+  miTransitionBuild();   // MI: laneTransition
+};
+/* CS-only tenants: no Staircase lifecycle events, and the Events toggle and Configure tab go
+   with them. Manual events are dropped too — where a CSM would log one without Staircase is
+   still an open question. */
+function scenarioData(sc){
+  const d=sc.data();
+  return CS_ONLY? d.filter(m=>m.kind!=='lifecycle'&&m.kind!=='manual') : d;
+}
+document.getElementById('custSel').onchange=e=>{
+  CS_ONLY=e.target.value==='cs';
+  const chip=document.querySelector('.tchip[data-kind="lifecycle"]');
+  if(chip) chip.style.display=CS_ONLY?'none':'';
+  laneOn.lifecycle=true; syncChips();
+  MOMENTS=scenarioData(SCENARIOS[SCENARIO]);
+  winMin=HOME_MIN; winMax=HOME_MAX;
+  closePop();
+  miTransitionBuild();   // MI: laneTransition
 };
 /* Arrowhead position is what makes these read as opposites, not the shaft angle.
    EXPAND puts the heads at the OUTER corners with the shafts running inward, so both arrows
@@ -4104,7 +4050,7 @@ document.querySelectorAll('.tchip').forEach(b=>{
   const next=!laneOn[kinds[0]];
   kinds.forEach(k=>{laneOn[k]=next;});
   closePop();
-  // MI: laneTransition — cross-fade instead of a hard jump when a lane is shown/hidden.
+  // MI: laneTransition — cross-fade instead of a hard jump when a type is shown or hidden.
   miTransitionBuild();
   syncChips();          // pressed state AND the Show/Hide name come from one place
  };
