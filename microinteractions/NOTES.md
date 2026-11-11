@@ -189,6 +189,14 @@ were still closed. `fitFullscreenLanes()` now budgets every row that fits at the
 pitch and shares it: events and milestones each take the finest window the pair can afford
 (`fsChooseRows`). A lane that is already showing every date does not keep the spare rows.
 
+## Final layout: one lane, fixed height
+
+Rebuilt to the "final" spec. Events and milestones share one lane (`LAYOUT` is fixed to
+`'merged'`; the Layout picker is gone from the rig bar). The compact widget is one height
+for every account (`FIXED_HEIGHT`, at `ROWS_MAX` rows), so it no longer resizes with the
+scenario. Key dates keep their own strip above the health bars. The legend's "Lanes" line
+is now "Shapes". Every microinteraction above still applies.
+
 ## Health tooltip hover matches the bar
 
 The invisible hit used to be the whole strip, plus 4px up into the plot, so the readout

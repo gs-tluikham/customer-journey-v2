@@ -542,15 +542,9 @@ border-radius:40px;padding:0 11px 0 9px;cursor:pointer;box-shadow:0 2px 6px rgba
 </head>
 <body>
 <div class="rig">
-  <span class="riglabel" title="Prototype rig — microinteractions lab, based on v3: events on top, milestones below, key-date strip">Prototype rig — microinteractions lab (based on v3)</span>
+  <span class="riglabel" title="Prototype rig — final: one lane, fixed height, key-date strip">Prototype rig — final: one lane, fixed height, key-date strip</span>
   <label class="rigfield" style="margin-left:auto;">
     <input type="checkbox" id="dbgRegions"> Layout regions
-  </label>
-  <label class="rigfield fit" style="margin-left:14px;">Layout
-    <select id="layoutSel" class="rigsel" title="Compare lane layouts">
-      <option value="split">Two lanes — events above, milestones below</option>
-      <option value="merged">One lane — events and milestones together</option>
-    </select>
   </label>
   <label class="rigfield fit" style="margin-left:14px;">Scenario
     <select id="scenSel" class="rigsel" title="Stress-test scenario"></select>
@@ -588,7 +582,7 @@ border-radius:40px;padding:0 11px 0 9px;cursor:pointer;box-shadow:0 2px 6px rgba
       <div class="keydef"><b>+N</b> Most recent of a group. Hover the count to see the rest.</div>
       <!-- Lanes split by kind, not by who created the item. A hollow dot is the only cue that
            an event was entered by a CSM rather than detected. -->
-      <div class="keydef"><b>Lanes</b> Top: events. Solid dots are detected from emails and calls; a hollow dot is a CSM-entered event, such as a planned check-in. Below: milestones, automatic or entered by a person. Bottom strip, flags: key dates.</div>
+      <div class="keydef"><b>Shapes</b> Dots are events, diamonds are milestones, sharing one lane. A group shows its latest item; hover the +N for the rest. Bottom strip: key dates.</div>
       <!-- The "Rows" line was CUT. Row position was flagged for validation, not for a fix, and
            this popover was only ever the cheaper remedy IF validation showed readers inferring an
            order. Shipping it first means shipping a disclaimer for an unconfirmed problem — and a
@@ -750,7 +744,9 @@ window.addEventListener('error',function(e){
      diamond      = milestone
      flag         = key date
    ===================================================================================== */
-let LAYOUT='split';   // 'split' | 'merged'
+/* Final build: events and milestones share one lane. The split code paths stay in place
+   but are never reached; 'merged' is the only layout this page offers. */
+const LAYOUT='merged';
 
 /* =====================================================================================
    MICROINTERACTIONS LAB — everything below tagged "MI:" is new, additive, and reversible.
@@ -2566,8 +2562,13 @@ function fitFullscreenLanes(){
     ev: evRows?evH+(absorb?slack:0):Math.max(60, avail-(msRows?msH:48))
   };
 }
+/* Final build: the compact widget is one fixed height for every account, at the ceiling
+   row count, so it never resizes when the scenario or the data changes. The adaptive
+   search below is kept but not reached. */
+const FIXED_HEIGHT=true;
 function chooseEventRows(){
   if(isMaxed()) return;                     // fullscreen takes the remaining height instead
+  if(FIXED_HEIGHT){ EV_ROWS=ROWS_MAX; return; }
   const kinds=laneKinds('lifecycle');
   const mine=MOMENTS.filter(m=>kinds.includes(m.kind)&&visible(m));
   for(let r=ROWS_MIN;r<=ROWS_MAX;r++){
@@ -3962,15 +3963,6 @@ function syncSelTitle(sel,purpose){
   const o=sel.options[sel.selectedIndex];
   sel.title=o? purpose+': '+o.textContent : purpose;
 }
-const layoutSel=document.getElementById('layoutSel');
-layoutSel.value=LAYOUT;
-syncSelTitle(layoutSel,'Layout');
-layoutSel.onchange=e=>{
-  syncSelTitle(layoutSel,'Layout'); LAYOUT=e.target.value; closePop();
-  // MI: laneTransition — same cross-fade treatment as the lane toggles, since switching
-  // layout also rearranges where the lanes sit.
-  miTransitionBuild();
-};
 const scenSel=document.getElementById('scenSel');
 Object.keys(SCENARIOS).forEach(k=>{
  const o=document.createElement('option'); o.value=k; o.textContent=SCENARIOS[k].label; scenSel.appendChild(o);
