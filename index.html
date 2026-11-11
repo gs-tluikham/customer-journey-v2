@@ -2275,8 +2275,13 @@ function build(){
            the data would make two accounts with different ranges look identical, and the
            scale has 12 colour divisions that assume a fixed ceiling. */
         const hh=Math.max(HEALTH_FLOOR,Math.round(HH*Math.min(1,Math.max(0,p.v/HEALTH_MAX))));
-        const hit=c.renderer.rect(c.plotLeft+x1,hBase-HH-4,x2-x1,HH+12,0)
+        /* The hover target is the drawn bar, plus 2px. It used to be the full strip and
+           4px up into the plot, so the readout opened over markers the pointer had
+           already moved on to. */
+        const hitTop=Math.max(hY, hBase-hh-2);
+        const hit=c.renderer.rect(c.plotLeft+x1,hitTop,Math.max(1,x2-x1),Math.max(4,hBase+2-hitTop),0)
           .attr({fill:'rgba(0,0,0,0.001)',zIndex:8}).add();
+        hit.addClass('hhit');
         const prev=i>0?HEALTH[i-1].v:null;
         hit.on('mouseover',e=>showHealthTip(e,p,prev));
         hit.on('mousemove',e=>showHealthTip(e,p,prev));
@@ -2647,6 +2652,7 @@ function build(){
         click:function(){onClick(this);},
         mouseOver:function(){
           const c=this.series.chart;
+          hideHealthTip();       // a marker taking hover means the pointer has left the bars
           releaseLabelHover();   // a marker taking hover releases any label that held it
           const kg=kdGroup(this);
           if(kg){ showMiniList(kg,this.graphic,kg.length+' key dates'); return; }
@@ -2756,6 +2762,15 @@ function showHealthTip(e,p,prev){
  requestAnimationFrame(()=>{ if(hTip.dataset.d===String(token) && hTip.style.display!=='none') placeHealthTip(x,y); });
 }
 function hideHealthTip(){hTip.style.display='none';}
+/* A chart redraw destroys the bar under the pointer, and removing that element does not
+   fire mouseout, which is how the readout stayed up after the pointer had moved on.
+   Any later move that is not still on a health bar closes it. */
+document.addEventListener('mousemove',e=>{
+  if(hTip.style.display==='none') return;
+  const t=e.target;
+  if(t&&t.classList&&t.classList.contains('hhit')) return;
+  hideHealthTip();
+});
 
 const pop=document.getElementById('pop');
 /* Rendered SVG text isn't interactive by default. These wire click and hover onto the

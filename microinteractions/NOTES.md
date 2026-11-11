@@ -189,6 +189,13 @@ were still closed. `fitFullscreenLanes()` now budgets every row that fits at the
 pitch and shares it: events and milestones each take the finest window the pair can afford
 (`fsChooseRows`). A lane that is already showing every date does not keep the spare rows.
 
+## Health tooltip hover matches the bar
+
+The invisible hit used to be the whole strip, plus 4px up into the plot, so the readout
+opened after the pointer had moved on to a marker. The hit is now the drawn bar plus 2px,
+and it closes when a marker takes hover or the pointer moves anywhere else. A redraw
+destroys the bar without a mouseout, so a later move that is not still on a bar closes it.
+
 ## Health tooltip clears the key-date card
 
 A key date flag sits on the health bars, so the health readout (just above the pointer)
