@@ -2481,14 +2481,30 @@ function fitFullscreenLanes(){
      row, and at that point coarsening IS the correct answer, so the ladder is allowed to do it. */
   const room=avail-(msRows?ROW_OFF+8:0)-(evRows?ROW_OFF+8:0);
   const gaps=Math.max(1,(msRows?msRows-1:0)+(evRows?evRows-1:0));
-  FS_PITCH=Math.max(FS_PITCH_MIN, Math.min(FS_PITCH_MAX, Math.floor(room/gaps)));
-
   /* Milestones take what their rows need at that pitch; EVENTS TAKE THE REMAINDER. Sizing both
      from row counts left a 6-8px shortfall from two independent floor() calls — giving the
      remainder to one lane makes the fill exact by construction rather than by arithmetic that
      has to come out even. */
-  const ms=msRows?lanePxFor(msRows,FS_PITCH)+12:0;   // headroom for the TODAY label
-  FS_LANES={ms, ev: Math.max(60, avail-ms)};
+  const applyPitch=p=>{
+    FS_PITCH=p;
+    const ms=msRows?lanePxFor(msRows,p)+12:0;   // headroom for the TODAY label
+    FS_LANES={ms, ev: Math.max(60, avail-ms)};
+  };
+  applyPitch(Math.max(FS_PITCH_MIN, Math.min(FS_PITCH_MAX, Math.floor(room/gaps))));
+
+  /* MI: the pitch above is only an estimate. It ignores the chevron gutter, which a lone lane
+     steps over, so the lane can hold fewer rows than the data needs. The ladder then coarsens,
+     needs fewer rows than the lane has, and the spare rows end up empty at the top. Settle it
+     by measuring: the largest pitch at which the lane still holds every row the data asked
+     for, so the rows that exist are the rows that are used. */
+  const holds=()=>(!msRows||rowCount('milestone')>=msRows)&&(!evRows||rowCount('lifecycle')>=evRows);
+  let guard=0;
+  while(FS_PITCH>FS_PITCH_MIN && !holds() && guard++<80) applyPitch(FS_PITCH-1);
+  guard=0;
+  while(FS_PITCH<FS_PITCH_MAX && guard++<200){
+    applyPitch(FS_PITCH+1);
+    if(!holds()){ applyPitch(FS_PITCH-1); break; }
+  }
 }
 /* ---- fixed rows by customer type ----
    Replaces the adaptive row picker: height is fixed per tenant type. ROWS_JOINT for joint
@@ -2503,6 +2519,10 @@ let ROW_PAD=0;
 function targetRows(){ return CS_ONLY? ROWS_CS : ROWS_JOINT; }
 function chooseEventRows(){
   if(isMaxed()) return;                     // fullscreen is an overlay; it does not affect C360
+  /* MI: the expanded view's pitch is still set when this runs on collapse (it is only cleared
+     later, in fitFullscreenLanes), so the compact height was measured with the wide spacing and
+     came out 414px instead of 306px. */
+  FS_LANES=null; FS_PITCH=null;
   /* Smallest height that holds the target rows. Start below the nominal height and grow:
      where the chevron gutter falls on the row ladder, the nominal height can hold one row MORE
      than asked for, which wasted 30px. Then trim back to exactly the target. */

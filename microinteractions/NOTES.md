@@ -43,6 +43,28 @@ Fixes carried over (not gated, because they are bugs rather than effects):
   move check closes it.
 - **Earlier-milestones chip is 28px**, matching the paging buttons.
 
+## Expanded view: rows match the data
+
+Fixes to `fitFullscreenLanes` and `chooseEventRows` (these are bugs in final, not effects, so
+they are not behind an `MI` flag):
+
+- **No empty rows at the top.** The pitch was stretched to fill the height from the row count
+  at the finest grouping. At the wider pitch fewer rows fit, so the grouping coarsened, needed
+  fewer rows, and the spare rows sat empty above the last label (burst18 and "Busy events, one
+  milestone" used 11 of 16, about 200px blank). The pitch is now the largest one at which the
+  lane still holds every row the data asked for, found by measuring `rowCount` rather than by
+  the estimate, which ignores the chevron gutter.
+- **Finer grouping where there is room.** Because the lane keeps the rows the fit asked for,
+  the ladder stays on the finer window: the default account goes from 21 to 22 markers in view
+  and busy ones show more individual events instead of +N counts.
+- **Collapse returns to the compact height.** The expanded pitch was still set when `build()`
+  chose the compact row count, so collapsing left the chart 414px tall instead of 306px.
+  `chooseEventRows` now clears it first.
+
+Still true by design: a sparse account is held by `FS_PITCH_MAX` (140px), so a lane with only
+a few events leaves its top empty rather than spreading rows further apart. The chevron
+gutter in the lane's middle still adds one extra gap in the row ladder.
+
 ## Dropped from the earlier (v3-based) lab
 
 The earlier lab's own renewal chip (lavender pennant pill, goal card, progress copy) is gone;
