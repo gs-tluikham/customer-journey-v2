@@ -189,6 +189,12 @@ were still closed. `fitFullscreenLanes()` now budgets every row that fits at the
 pitch and shares it: events and milestones each take the finest window the pair can afford
 (`fsChooseRows`). A lane that is already showing every date does not keep the spare rows.
 
+## Health tooltip clears the key-date card
+
+A key date flag sits on the health bars, so the health readout (just above the pointer)
+was landing on the flag's own tooltip. `placeHealthTip()` moves it above that card, or
+below it, or to the side, whichever is clear. The same placement is in the main prototype.
+
 ## Hover passes (health, key date)
 
 - **Health bars** (`MI.healthHover`). The bar under the pointer stays at full colour; the other

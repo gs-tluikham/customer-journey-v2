@@ -3092,6 +3092,44 @@ function clearHover(){
 build();
 
 const hTip=document.getElementById('hTip');
+/* The open marker card (.cjtip inside the chart tooltip), in wrap coordinates.
+   Hidden tooltips stay in the DOM, so a zero box or a hidden ancestor does not count. */
+function openMarkerTip(wrap){
+  if(!chart||!chart.container) return null;
+  const card=chart.container.querySelector('.highcharts-tooltip .cjtip');
+  if(!card) return null;
+  for(let n=card;n&&n!==document.body;n=n.parentElement){
+    const s=getComputedStyle(n);
+    if(s.display==='none'||s.visibility==='hidden'||s.opacity==='0') return null;
+  }
+  const r=card.getBoundingClientRect();
+  if(r.width<2||r.height<2) return null;
+  return {l:r.left-wrap.left,t:r.top-wrap.top,r:r.right-wrap.left,b:r.bottom-wrap.top};
+}
+function tipHits(l,t,w,h,o,gap){
+  return l<o.r+gap && l+w>o.l-gap && t<o.b+gap && t+h>o.t-gap;
+}
+/* Default is just above the pointer. A key date flag sits on the health bars, so that
+   default lands on the flag's own card. Move the health card clear of it: above the
+   card when there is room, otherwise below it, otherwise to the side. */
+function placeHealthTip(x,y){
+  const wrap=document.getElementById('wrap').getBoundingClientRect();
+  const w=hTip.offsetWidth, h=hTip.offsetHeight;
+  let left=Math.max(8,Math.min(x-w/2,wrap.width-w-8));
+  let top=Math.max(8,y-h-10);
+  const other=openMarkerTip(wrap);
+  if(other && tipHits(left,top,w,h,other,6)){
+    const above=other.t-h-8;
+    if(above>=8) top=above;
+    else if(other.b+8+h<=wrap.height-8) top=other.b+8;
+    if(tipHits(left,top,w,h,other,6)){
+      if(wrap.width-(other.r+8)>=w) left=other.r+8;
+      else left=Math.max(8, other.l-w-8);
+    }
+  }
+  hTip.style.left=left+'px';
+  hTip.style.top=top+'px';
+}
 function showHealthTip(e,p,prev){
  const d=prev===null?null:p.v-prev;
  const dir=d===null||d===0?'':(d>0?`▲ ${d} from ${prev}`:`▼ ${Math.abs(d)} from ${prev}`);
@@ -3100,8 +3138,12 @@ function showHealthTip(e,p,prev){
  hTip.style.display='block';
  const wrap=document.getElementById('wrap').getBoundingClientRect();
  const x=(e.clientX!=null?e.clientX:0)-wrap.left, y=(e.clientY!=null?e.clientY:0)-wrap.top;
- hTip.style.left=Math.max(8,Math.min(x-hTip.offsetWidth/2,wrap.width-hTip.offsetWidth-8))+'px';
- hTip.style.top=Math.max(8,y-hTip.offsetHeight-10)+'px';
+ placeHealthTip(x,y);
+ /* The marker card is positioned by Highcharts after this handler. Measure again once
+    it has landed, and only if this readout is still the one on screen. */
+ const token=p.d;
+ hTip.dataset.d=token;
+ requestAnimationFrame(()=>{ if(hTip.dataset.d===String(token) && hTip.style.display!=='none') placeHealthTip(x,y); });
 }
 function hideHealthTip(){hTip.style.display='none';}
 
